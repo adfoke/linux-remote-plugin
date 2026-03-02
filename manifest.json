@@ -1,0 +1,30 @@
+{
+  "id": "alma-linux-remote-plugin",
+  "name": "Linux Remote (Stateless)",
+  "version": "0.2.0",
+  "description": "专为 Alma AI Agent 设计的原子级无状态 Linux SSH 操作插件",
+  "author": {
+    "name": "adfoke",
+    "email": "trawow@gmail.com"
+  },
+  "main": "src/alma_linux_remote_plugin/runtime_adapter.py",
+  "engines": {
+    "alma": "^0.1.0"
+  },
+  "type": "tool",
+  "permissions": [
+    "network:ssh",
+    "filesystem:read",
+    "filesystem:write"
+  ],
+  "activationEvents": ["onStartup"],
+  "contributes": {
+    "tools": [
+      { "id": "list_hosts", "name": "列出主机", "description": "返回所有配置的主机列表" },
+      { "id": "test_connection", "name": "测试连通性", "description": "测试指定主机 SSH 连通性" },
+      { "id": "run_command", "name": "执行命令", "description": "在指定主机执行单条 shell 命令" },
+      { "id": "upload_file", "name": "上传文件", "description": "上传本地文件到远程主机" },
+      { "id": "download_file", "name": "下载文件", "description": "从远程主机下载文件到本地" }
+    ]
+  }
+}

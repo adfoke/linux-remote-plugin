@@ -1,0 +1,13 @@
+hosts:
+  my-server:
+    host: 192.168.1.100
+    username: root
+    auth:
+      method: password
+      password_env: MY_SERVER_PASS
+  dev-box:
+    host: dev.example.com
+    username: ubuntu
+    auth:
+      method: key
+      key_path: ~/.ssh/id_ed25519
