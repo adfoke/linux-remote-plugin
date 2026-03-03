@@ -1,6 +1,6 @@
 {
   "id": "alma-linux-remote-plugin",
-  "name": "Linux Remote (Stateless)",
+  "name": "Linux Remote (Persistent)",
   "version": "0.2.0",
   "description": "专为 Alma AI Agent 设计的原子级无状态 Linux SSH 操作插件",
   "author": {

@@ -1,8 +1,5 @@
 from typing import Any, Dict, List
-from .tools import (          # ← 严格按要求 import tools.py 的函数
-    list_hosts, test_connection, run_command,
-    upload_file, download_file
-)
+from .tools import list_hosts, test_connection, run_command, upload_file, download_file
 from .models import CommandResult
 
 class AlmaRuntimeAdapter:
@@ -35,7 +32,7 @@ class AlmaRuntimeAdapter:
                 "type": "function",
                 "function": {
                     "name": "run_command",
-                    "description": "在远程主机执行单条命令（核心原子操作）",
+                    "description": "在持久会话中执行命令（自动创建Session，保留目录和环境变量）",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -51,7 +48,7 @@ class AlmaRuntimeAdapter:
                 "type": "function",
                 "function": {
                     "name": "upload_file",
-                    "description": "上传文件到远程主机",
+                    "description": "上传文件到远程主机（自动Session）",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -67,7 +64,7 @@ class AlmaRuntimeAdapter:
                 "type": "function",
                 "function": {
                     "name": "download_file",
-                    "description": "从远程主机下载文件",
+                    "description": "从远程主机下载文件（自动Session）",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -97,7 +94,6 @@ class AlmaRuntimeAdapter:
             return download_file(args["host_name"], args["remote_path"], args["local_path"])
         raise ValueError(f"未知工具: {tool_name}")
 
-# Alma Skill 标准导出
 adapter = AlmaRuntimeAdapter()
 
 def get_tools():
