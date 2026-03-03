@@ -8,11 +8,12 @@ from alma_linux_remote_plugin.ssh import SSHManager
 
 @patch("alma_linux_remote_plugin.ssh.load_hosts")
 @patch("paramiko.SSHClient")
-def test_run_command_success(mock_ssh_client, mock_load_hosts):
+def test_run_command_success(mock_ssh_client, mock_load_hosts, monkeypatch):
+    monkeypatch.setenv("MY_SERVER_KEY_PASS", "key_pass")
     host_config = HostConfig(
         host="127.0.0.1",
         username="testuser",
-        auth=HostAuth(method="password", password_env="MY_SERVER_PASS"),
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519", passphrase_env="MY_SERVER_KEY_PASS"),
     )
     mock_load_hosts.return_value = {"test-server": host_config}
 
@@ -39,7 +40,7 @@ def test_upload_file(mock_ssh_client, mock_load_hosts):
     host_config = HostConfig(
         host="127.0.0.1",
         username="testuser",
-        auth=HostAuth(method="password", password_env="MY_SERVER_PASS"),
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
     )
     mock_load_hosts.return_value = {"test-server": host_config}
 
@@ -59,3 +60,15 @@ def test_run_command_host_not_found(mock_load_hosts):
     mock_load_hosts.return_value = {}
     with pytest.raises(ValueError, match="未配置"):
         SSHManager.run_command("missing", "uptime")
+
+
+@patch("paramiko.SSHClient")
+def test_connect_key_passphrase_env_missing(mock_ssh_client):
+    host_config = HostConfig(
+        host="127.0.0.1",
+        username="testuser",
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519", passphrase_env="MISSING_ENV"),
+    )
+
+    with pytest.raises(ValueError, match="环境变量 MISSING_ENV 未设置"):
+        SSHManager._connect(mock_ssh_client.return_value, host_config)

@@ -9,16 +9,17 @@ from alma_linux_remote_plugin.models import (
 
 
 def test_host_auth_model():
-    auth = HostAuth(method="password", password_env="PASS")
-    assert auth.method == "password"
-    assert auth.password_env == "PASS"
+    auth = HostAuth(method="key", key_path="~/.ssh/id_ed25519", passphrase_env="PASS")
+    assert auth.method == "key"
+    assert auth.key_path == "~/.ssh/id_ed25519"
+    assert auth.passphrase_env == "PASS"
 
 
 def test_host_config_model():
     cfg = HostConfig(
         host="127.0.0.1",
         username="root",
-        auth=HostAuth(method="password", password_env="PASS"),
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
     )
     assert cfg.port == 22
     assert cfg.host == "127.0.0.1"

@@ -109,9 +109,13 @@ When user asks “查看AI操作日志”, prefer directing to dashboard/API fil
 
 ## Safety Rules
 
-- Never echo secrets from `.env` (password/passphrase)
+- Never echo secrets from `.env` (key passphrase or other secrets)
 - Never fabricate command output
-- If command may be destructive (`rm -rf`, service stop, firewall change), ask for confirmation before execution
+- Command policy is configurable:
+  - `policy.default_mode = blocklist` (default)
+  - `policy.default_mode = strict_allowlist`
+  - `policy.host_overrides.<host>` for per-host policy
+- If command is blocked, return clear manual steps; do not attempt bypass
 - Always show host + command in response summary
 
 ---

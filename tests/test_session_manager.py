@@ -11,7 +11,7 @@ def test_run_command_uses_cached_session(monkeypatch):
     host_cfg = HostConfig(
         host="127.0.0.1",
         username="u",
-        auth=HostAuth(method="password", password_env="MY_SERVER_PASS"),
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
     )
     monkeypatch.setattr("alma_linux_remote_plugin.session_manager.load_hosts", lambda: {"h": host_cfg})
 
@@ -62,3 +62,24 @@ def test_upload_download(monkeypatch):
 
     assert "上传成功" in up
     assert "下载成功" in down
+
+
+def test_run_command_block_dangerous(monkeypatch):
+    # 命中危险命令时，不应创建会话
+    called = {"ensure": False}
+
+    def fake_ensure(host_name):
+        called["ensure"] = True
+        return {}
+
+    monkeypatch.setattr(
+        "alma_linux_remote_plugin.session_manager.SessionManager._ensure_session",
+        fake_ensure,
+    )
+
+    result = SessionManager.run_command("h", "rm -rf /")
+    assert result.success is False
+    assert result.blocked is True
+    assert result.reason and result.reason.startswith("blocked_by_pattern")
+    assert "危险操作已拦截" in result.stderr
+    assert called["ensure"] is False

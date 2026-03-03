@@ -44,6 +44,7 @@ def load_config(config_path: str = "hosts.yaml") -> PluginConfig:
     return PluginConfig(
         session=data.get("session", {}),
         audit=data.get("audit", {}),
+        policy=data.get("policy", {}),
     )
 
 

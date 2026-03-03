@@ -7,7 +7,7 @@ def test_load_hosts_success():
     hosts = load_hosts()
     assert "test-server" in hosts
     assert hosts["test-server"].host == "127.0.0.1"
-    assert hosts["test-server"].auth.method == "password"
+    assert hosts["test-server"].auth.method == "key"
 
 
 def test_load_hosts_file_not_found():
@@ -19,3 +19,5 @@ def test_load_config_has_defaults():
     cfg = load_config()
     assert cfg.session.idle_timeout_seconds == 300
     assert cfg.audit.enabled is True
+    assert cfg.policy.enabled is True
+    assert cfg.policy.default_mode == "blocklist"

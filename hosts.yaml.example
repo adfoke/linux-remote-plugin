@@ -3,8 +3,9 @@ hosts:
     host: 192.168.1.100
     username: root
     auth:
-      method: password
-      password_env: MY_SERVER_PASS
+      method: key
+      key_path: ~/.ssh/id_ed25519
+      passphrase_env: MY_SERVER_KEY_PASS
   dev-box:
     host: dev.example.com
     username: ubuntu
@@ -20,3 +21,23 @@ audit:
   db_path: ./logs/audit.db
   dashboard_host: 127.0.0.1
   dashboard_port: 8765
+
+policy:
+  enabled: true
+  default_mode: blocklist # blocklist | strict_allowlist
+
+  # blocklist 模式：命中即拦截；为空则使用内置高危规则
+  block_patterns:
+    - "\\brm\\s+-rf\\s+/(\\s|$)"
+
+  # strict_allowlist 模式：仅允许命中以下规则
+  allow_patterns:
+    - "^ls(\\s|$)"
+    - "^cat\\s+/etc/"
+
+  # 按主机覆盖策略
+  host_overrides:
+    prod-box:
+      mode: strict_allowlist
+      allow_patterns:
+        - "^systemctl\\s+status\\s+nginx$"

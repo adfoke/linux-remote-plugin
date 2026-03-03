@@ -9,6 +9,7 @@ import paramiko
 from .audit import AuditLogger
 from .config import load_config, load_hosts
 from .models import CommandResult, SessionConfig
+from .safety import evaluate_command_policy
 from .ssh import SSHManager
 
 
@@ -81,6 +82,38 @@ class SessionManager:
 
     @classmethod
     def run_command(cls, host_name: str, command: str, timeout: int = 60) -> CommandResult:
+        policy = load_config("hosts.yaml").policy
+        allowed, reason, mode = evaluate_command_policy(host_name, command, policy)
+        if not allowed:
+            suggestions = [
+                "请用户自行 SSH 登录目标主机执行该命令",
+                "先执行只读检查命令评估影响范围",
+            ]
+            blocked_result = CommandResult(
+                command=command,
+                exit_code=126,
+                stdout="",
+                stderr="危险操作已拦截，请用户自行操作",
+                success=False,
+                blocked=True,
+                reason=reason or "dangerous_operation",
+                suggestions=suggestions,
+            )
+            AuditLogger().log(
+                "dangerous_block",
+                host_name,
+                {
+                    "command": command,
+                    "policy_mode": mode,
+                    "policy_reason": blocked_result.reason,
+                    "message": blocked_result.stderr,
+                    "success": False,
+                    "blocked": True,
+                    "session_mode": "persistent",
+                },
+            )
+            return blocked_result
+
         session = cls._ensure_session(host_name)
         with session["lock"]:
             start = time.perf_counter()

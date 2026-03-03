@@ -6,7 +6,7 @@ import yaml
 
 @pytest.fixture(autouse=True)
 def setup_test_env(monkeypatch, tmp_path: Path):
-    monkeypatch.setenv("MY_SERVER_PASS", "test_password_123")
+    monkeypatch.setenv("MY_SERVER_KEY_PASS", "test_key_passphrase")
     monkeypatch.chdir(tmp_path)
 
     hosts_file = tmp_path / "hosts.yaml"
@@ -16,8 +16,9 @@ def setup_test_env(monkeypatch, tmp_path: Path):
                 "host": "127.0.0.1",
                 "username": "testuser",
                 "auth": {
-                    "method": "password",
-                    "password_env": "MY_SERVER_PASS",
+                    "method": "key",
+                    "key_path": "~/.ssh/id_ed25519",
+                    "passphrase_env": "MY_SERVER_KEY_PASS",
                 },
             }
         },
@@ -29,6 +30,13 @@ def setup_test_env(monkeypatch, tmp_path: Path):
             "db_path": "./logs/audit.db",
             "dashboard_host": "127.0.0.1",
             "dashboard_port": 8765,
+        },
+        "policy": {
+            "enabled": True,
+            "default_mode": "blocklist",
+            "block_patterns": [],
+            "allow_patterns": [],
+            "host_overrides": {},
         },
     }
     hosts_file.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")

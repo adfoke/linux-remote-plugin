@@ -21,19 +21,14 @@ class SSHManager:
             "banner_timeout": timeout,
         }
         auth = host_cfg.auth
-        if auth.method == "password":
-            if not auth.password_env:
-                raise ValueError("password 模式必须配置 password_env")
-            pwd = os.getenv(auth.password_env)
-            if not pwd:
-                raise ValueError(f"环境变量 {auth.password_env} 未设置")
-            kwargs["password"] = pwd
-        else:
-            if not auth.key_path:
-                raise ValueError("key 模式必须配置 key_path")
-            kwargs["key_filename"] = os.path.expanduser(auth.key_path)
-            if auth.passphrase_env:
-                kwargs["passphrase"] = os.getenv(auth.passphrase_env)
+        if not auth.key_path:
+            raise ValueError("key 模式必须配置 key_path")
+        kwargs["key_filename"] = os.path.expanduser(auth.key_path)
+        if auth.passphrase_env:
+            passphrase = os.getenv(auth.passphrase_env)
+            if not passphrase:
+                raise ValueError(f"环境变量 {auth.passphrase_env} 未设置")
+            kwargs["passphrase"] = passphrase
 
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(**kwargs)
