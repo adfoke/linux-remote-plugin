@@ -2,8 +2,11 @@ from unittest.mock import MagicMock
 
 from alma_linux_remote_plugin.tools import (
     download_file,
+    get_audit_web_server_status,
     list_hosts,
     run_command,
+    start_audit_web_server,
+    stop_audit_web_server,
     test_connection as tool_test_connection,
     upload_file,
 )
@@ -79,3 +82,54 @@ def test_list_hosts(monkeypatch):
         lambda: {"test-server": object()},
     )
     assert list_hosts() == ["test-server"]
+
+
+def test_start_audit_web_server(monkeypatch):
+    logger = MagicMock()
+    logger.start_dashboard.return_value = "http://127.0.0.1:8765"
+    logger.dashboard_status.return_value = {
+        "running": True,
+        "url": "http://127.0.0.1:8765",
+        "host": "127.0.0.1",
+        "port": 8765,
+        "db_path": "/tmp/audit.db",
+    }
+    monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
+
+    result = start_audit_web_server()
+
+    assert result["running"] is True
+    assert result["url"] == "http://127.0.0.1:8765"
+
+
+def test_stop_audit_web_server(monkeypatch):
+    logger = MagicMock()
+    logger.dashboard_status.return_value = {
+        "running": False,
+        "url": None,
+        "host": "127.0.0.1",
+        "port": 8765,
+        "db_path": "/tmp/audit.db",
+    }
+    monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
+
+    result = stop_audit_web_server()
+
+    logger.stop_dashboard.assert_called_once()
+    assert result["running"] is False
+
+
+def test_get_audit_web_server_status(monkeypatch):
+    logger = MagicMock()
+    logger.dashboard_status.return_value = {
+        "running": False,
+        "url": None,
+        "host": "127.0.0.1",
+        "port": 8765,
+        "db_path": "/tmp/audit.db",
+    }
+    monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
+
+    result = get_audit_web_server_status()
+
+    assert result["running"] is False

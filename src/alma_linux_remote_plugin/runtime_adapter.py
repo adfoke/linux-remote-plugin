@@ -3,7 +3,16 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from .models import CommandResult
-from .tools import download_file, list_hosts, run_command, test_connection, upload_file
+from .tools import (
+    download_file,
+    get_audit_web_server_status,
+    list_hosts,
+    run_command,
+    start_audit_web_server,
+    stop_audit_web_server,
+    test_connection,
+    upload_file,
+)
 
 
 class AlmaRuntimeAdapter:
@@ -80,6 +89,37 @@ class AlmaRuntimeAdapter:
                     },
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "start_audit_web_server",
+                    "description": "手动启动 SQLite 审计日志 Web 服务，默认不会自动启动",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "host": {"type": "string"},
+                            "port": {"type": "integer"},
+                        },
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "stop_audit_web_server",
+                    "description": "手动停止 SQLite 审计日志 Web 服务",
+                    "parameters": {"type": "object", "properties": {}, "required": []},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_audit_web_server_status",
+                    "description": "查询 SQLite 审计日志 Web 服务状态",
+                    "parameters": {"type": "object", "properties": {}, "required": []},
+                },
+            },
         ]
 
     def invoke(self, tool_name: str, args: Dict[str, Any]) -> Any:
@@ -96,6 +136,12 @@ class AlmaRuntimeAdapter:
             return upload_file(args["host_name"], args["local_path"], args["remote_path"])
         if tool_name == "download_file":
             return download_file(args["host_name"], args["remote_path"], args["local_path"])
+        if tool_name == "start_audit_web_server":
+            return start_audit_web_server(args.get("host"), args.get("port"))
+        if tool_name == "stop_audit_web_server":
+            return stop_audit_web_server()
+        if tool_name == "get_audit_web_server_status":
+            return get_audit_web_server_status()
         raise ValueError(f"未知工具: {tool_name}")
 
 

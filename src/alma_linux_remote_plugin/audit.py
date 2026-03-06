@@ -227,6 +227,11 @@ class AuditLogger:
                 break
             time.sleep(0.05)
 
+        if not server.started:
+            server.should_exit = True
+            thread.join(timeout=5)
+            raise RuntimeError("审计日志 Web 服务启动失败")
+
         self._dashboard_server = server
         self._dashboard_thread = thread
         self._dashboard_url = f"http://{bind_host}:{bind_port}"
@@ -243,6 +248,23 @@ class AuditLogger:
         self._dashboard_server = None
         self._dashboard_thread = None
         self._dashboard_url = None
+
+    def dashboard_status(self) -> Dict[str, Any]:
+        running = bool(
+            self._dashboard_server is not None
+            and self._dashboard_thread is not None
+            and self._dashboard_thread.is_alive()
+            and self._dashboard_server.started
+            and not self._dashboard_server.should_exit
+            and self._dashboard_url is not None
+        )
+        return {
+            "running": running,
+            "url": self._dashboard_url if running else None,
+            "host": self.dashboard_host,
+            "port": self.dashboard_port,
+            "db_path": str(self.db_path),
+        }
 
 
 def _find_free_port(host: str) -> int:

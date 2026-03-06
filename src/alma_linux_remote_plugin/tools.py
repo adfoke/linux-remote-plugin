@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Any, Dict, List, Optional
 
+from .audit import AuditLogger
 from .config import load_hosts
 from .models import CommandResult
 from .session_manager import SessionManager
@@ -34,3 +35,22 @@ def upload_file(host_name: str, local_path: str, remote_path: str) -> str:
 def download_file(host_name: str, remote_path: str, local_path: str) -> str:
     """下载文件（自动 Session）。"""
     return SessionManager.download_file(host_name, remote_path, local_path)
+
+
+def start_audit_web_server(host: Optional[str] = None, port: Optional[int] = None) -> Dict[str, Any]:
+    """手动启动审计日志 Web 服务。默认不启动，按需显式调用。"""
+    logger = AuditLogger()
+    url = logger.start_dashboard(host=host, port=port)
+    return logger.dashboard_status() | {"url": url}
+
+
+def stop_audit_web_server() -> Dict[str, Any]:
+    """手动停止审计日志 Web 服务。"""
+    logger = AuditLogger()
+    logger.stop_dashboard()
+    return logger.dashboard_status()
+
+
+def get_audit_web_server_status() -> Dict[str, Any]:
+    """查询审计日志 Web 服务状态。"""
+    return AuditLogger().dashboard_status()

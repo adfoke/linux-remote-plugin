@@ -128,19 +128,31 @@ policy:
 
 已改为数据库模式，不再写 `audit.jsonl` 文件。
 
+默认情况下，审计日志 Web 服务处于关闭状态，不会随插件自动启动。只有在你显式调用启动接口时，FastAPI + Uvicorn 才会启动。
+
 默认配置：
 
 - `db_path = ./logs/audit.db`
 - `dashboard_host = 127.0.0.1`
 - `dashboard_port = 8765`
 
-你可以在运行时启动日志后台页面（FastAPI + Uvicorn）：
+你可以在运行时手动启动日志后台页面（FastAPI + Uvicorn）：
 
 ```python
 from alma_linux_remote_plugin.audit import AuditLogger
 
 url = AuditLogger().start_dashboard()
 print(url)  # 例如 http://127.0.0.1:8765
+```
+
+也可以通过插件工具手动控制：
+
+```python
+from alma_linux_remote_plugin.runtime_adapter import invoke
+
+print(invoke("get_audit_web_server_status", {}))
+print(invoke("start_audit_web_server", {}))
+print(invoke("stop_audit_web_server", {}))
 ```
 
 可用接口：
@@ -165,6 +177,9 @@ print(url)  # 例如 http://127.0.0.1:8765
 - `run_command(host_name, command, timeout=60)`
 - `upload_file(host_name, local_path, remote_path)`
 - `download_file(host_name, remote_path, local_path)`
+- `start_audit_web_server(host=None, port=None)`
+- `stop_audit_web_server()`
+- `get_audit_web_server_status()`
 
 对应入口：
 

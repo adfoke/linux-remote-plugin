@@ -66,3 +66,16 @@ def test_audit_dashboard_api_with_pagination_and_time_range(monkeypatch, tmp_pat
         assert '"total":1' in body2
     finally:
         logger.stop_dashboard()
+
+
+def test_audit_dashboard_status_defaults_to_stopped(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+
+    AuditLogger._instance = None
+    logger = AuditLogger()
+
+    status = logger.dashboard_status()
+
+    assert status["running"] is False
+    assert status["url"] is None
+    assert status["port"] == 8765
