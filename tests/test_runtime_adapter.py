@@ -7,7 +7,7 @@ from alma_linux_remote_plugin.runtime_adapter import adapter
 
 def test_get_tools():
     tools = adapter.get_tools()
-    assert len(tools) == 9
+    assert len(tools) == 10
 
 
 @patch("alma_linux_remote_plugin.runtime_adapter.list_hosts")
@@ -147,6 +147,35 @@ def test_invoke_download_file_batch(mock_download_file_batch):
         },
     )
     assert result["failure_count"] == 1
+
+
+@patch("alma_linux_remote_plugin.runtime_adapter.query_audit_logs")
+def test_invoke_query_audit_logs(mock_query_audit_logs):
+    mock_query_audit_logs.return_value = {
+        "page": 1,
+        "page_size": 2,
+        "total": 2,
+        "total_pages": 1,
+        "items": [{"id": 2}, {"id": 1}],
+    }
+
+    result = adapter.invoke(
+        "query_audit_logs",
+        {
+            "latest": 2,
+            "host_name": "test-server",
+        },
+    )
+
+    mock_query_audit_logs.assert_called_once_with(
+        page=1,
+        latest=2,
+        host_name="test-server",
+        operation_type=None,
+        start_time=None,
+        end_time=None,
+    )
+    assert result["total"] == 2
 
 
 def test_invoke_unknown_tool():

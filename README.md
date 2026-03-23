@@ -83,7 +83,7 @@ uv run alma-linux-remote test-connection my-server
 uv run alma-linux-remote run-command my-server "uname -a"
 uv run alma-linux-remote upload-file my-server ./a.txt /tmp/a.txt
 uv run alma-linux-remote download-file my-server /tmp/a.txt ./a.txt
-uv run alma-linux-remote audit-logs --page-size 20
+uv run alma-linux-remote audit-logs
 ```
 
 审计日志过滤：

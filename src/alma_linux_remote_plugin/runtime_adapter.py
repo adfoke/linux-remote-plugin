@@ -7,6 +7,7 @@ from .tools import (
     download_file,
     download_file_batch,
     list_hosts,
+    query_audit_logs,
     run_command,
     run_command_batch,
     test_connection,
@@ -155,6 +156,25 @@ class AlmaRuntimeAdapter:
             {
                 "type": "function",
                 "function": {
+                    "name": "query_audit_logs",
+                    "description": "查询 SQLite 审计日志，支持最新日志和条件过滤",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "page": {"type": "integer", "default": 1},
+                            "latest": {"type": "integer"},
+                            "host_name": {"type": "string"},
+                            "operation_type": {"type": "string"},
+                            "start_time": {"type": "string"},
+                            "end_time": {"type": "string"},
+                        },
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "download_file_batch",
                     "description": "并发从多台主机下载同一路径文件到按主机区分的本地路径模板",
                     "parameters": {
@@ -212,6 +232,15 @@ class AlmaRuntimeAdapter:
             return result.model_dump()
         if tool_name == "download_file":
             return download_file(args["host_name"], args["remote_path"], args["local_path"])
+        if tool_name == "query_audit_logs":
+            return query_audit_logs(
+                page=args.get("page", 1),
+                latest=args.get("latest"),
+                host_name=args.get("host_name"),
+                operation_type=args.get("operation_type"),
+                start_time=args.get("start_time"),
+                end_time=args.get("end_time"),
+            )
         if tool_name == "download_file_batch":
             result: BatchTransferResult = download_file_batch(
                 args["host_names"],

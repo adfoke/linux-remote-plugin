@@ -28,7 +28,6 @@ def test_cli_audit_logs_help(capsys):
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "Query audit logs from SQLite." in captured.out
-    assert "--page-size" in captured.out
     assert "--latest" in captured.out
 
 
@@ -61,13 +60,21 @@ def test_cli_audit_logs_outputs_json(monkeypatch, capsys):
         lambda **kwargs: {"page": 1, "page_size": 50, "total": 1, "total_pages": 1, "items": []},
     )
 
-    exit_code = main(["audit-logs", "--page-size", "50"])
+    exit_code = main(["audit-logs"])
 
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
     assert exit_code == 0
     assert payload["command"] == "audit-logs"
     assert payload["data"]["total"] == 1
+
+
+def test_cli_audit_logs_rejects_page_size_option(capsys):
+    exit_code = main(["audit-logs", "--page-size", "20"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "--page-size" in captured.err
 
 
 def test_cli_audit_logs_passes_latest(monkeypatch, capsys):

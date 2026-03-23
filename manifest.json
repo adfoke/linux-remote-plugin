@@ -28,6 +28,7 @@
       { "id": "upload_file", "name": "上传文件", "description": "上传本地文件到远程主机" },
       { "id": "upload_file_batch", "name": "批量上传文件", "description": "并发将同一个本地文件上传到多台主机" },
       { "id": "download_file", "name": "下载文件", "description": "从远程主机下载文件到本地" },
+      { "id": "query_audit_logs", "name": "查询审计日志", "description": "查询 SQLite 审计日志，支持最新日志和条件过滤" },
       { "id": "download_file_batch", "name": "批量下载文件", "description": "并发从多台主机下载文件到按主机区分的本地路径" }
     ]
   }

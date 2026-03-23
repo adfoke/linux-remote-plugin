@@ -65,7 +65,7 @@ allowed-tools:
 查日志走 CLI：
 
 ```bash
-alma-linux-remote audit-logs --page-size 50
+alma-linux-remote audit-logs
 alma-linux-remote audit-logs --host-name prod-web-1
 alma-linux-remote audit-logs --operation-type run_command
 ```
