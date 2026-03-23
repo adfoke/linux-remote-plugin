@@ -29,6 +29,7 @@ def test_cli_audit_logs_help(capsys):
     assert exit_code == 0
     assert "Query audit logs from SQLite." in captured.out
     assert "--page-size" in captured.out
+    assert "--latest" in captured.out
 
 
 def test_cli_accepts_underscore_command_alias(monkeypatch, capsys):
@@ -67,6 +68,24 @@ def test_cli_audit_logs_outputs_json(monkeypatch, capsys):
     assert exit_code == 0
     assert payload["command"] == "audit-logs"
     assert payload["data"]["total"] == 1
+
+
+def test_cli_audit_logs_passes_latest(monkeypatch, capsys):
+    called: dict[str, int | None] = {"latest": None}
+
+    def fake_query_audit_logs(**kwargs):
+        called["latest"] = kwargs.get("latest")
+        return {"page": 1, "page_size": 3, "total": 3, "total_pages": 1, "items": []}
+
+    monkeypatch.setattr("alma_linux_remote_plugin.cli.query_audit_logs", fake_query_audit_logs)
+
+    exit_code = main(["audit-logs", "--latest", "3"])
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 0
+    assert called["latest"] == 3
+    assert payload["data"]["page_size"] == 3
 
 
 def test_cli_run_command_returns_remote_exit_code(monkeypatch, capsys):

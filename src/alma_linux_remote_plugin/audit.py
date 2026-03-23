@@ -89,6 +89,7 @@ class AuditLogger:
         self,
         page: int = 1,
         page_size: int = 50,
+        latest: int | None = None,
         host_name: Optional[str] = None,
         operation_type: Optional[str] = None,
         start_time: Optional[str] = None,
@@ -96,6 +97,9 @@ class AuditLogger:
     ) -> Dict[str, Any]:
         page = max(1, page)
         page_size = max(1, min(page_size, 200))
+        if latest is not None:
+            page = 1
+            page_size = max(1, min(latest, 200))
 
         normalized_start = _normalize_iso8601(start_time) if start_time else None
         normalized_end = _normalize_iso8601(end_time) if end_time else None

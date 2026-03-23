@@ -75,3 +75,21 @@ def test_audit_query_logs_rejects_invalid_time_filter(monkeypatch, tmp_path):
         assert "非法时间格式" in str(exc)
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_audit_query_logs_latest_returns_newest_first(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+
+    AuditLogger._instance = None
+    logger = AuditLogger()
+
+    logger.log("first", "test-server", {"seq": 1})
+    logger.log("second", "test-server", {"seq": 2})
+    logger.log("third", "test-server", {"seq": 3})
+
+    result = logger.query_logs(latest=2)
+
+    assert result["page"] == 1
+    assert result["page_size"] == 2
+    assert result["total"] == 3
+    assert [item["operation_type"] for item in result["items"]] == ["third", "second"]

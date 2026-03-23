@@ -70,6 +70,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "  alma-linux-remote test-connection my-server\n"
             "  alma-linux-remote run-command my-server 'uname -a'\n"
             "  alma-linux-remote run-command-batch 'uptime' web-1 web-2\n"
+            "  alma-linux-remote audit-logs --latest 20\n"
             "  alma-linux-remote audit-logs --page-size 20\n"
         ),
     )
@@ -238,6 +239,11 @@ def _build_parser() -> argparse.ArgumentParser:
         default=50,
         help="Page size. Default: 50.",
     )
+    audit_logs_parser.add_argument(
+        "--latest",
+        type=int,
+        help="Show latest N logs. Latest first.",
+    )
     audit_logs_parser.add_argument("--host-name", help="Filter by host name.")
     audit_logs_parser.add_argument("--operation-type", help="Filter by operation type.")
     audit_logs_parser.add_argument("--start-time", help="Filter start time, ISO8601.")
@@ -370,6 +376,7 @@ def _cmd_audit_logs(args: argparse.Namespace) -> int:
     data = query_audit_logs(
         page=args.page,
         page_size=args.page_size,
+        latest=args.latest,
         host_name=args.host_name,
         operation_type=args.operation_type,
         start_time=args.start_time,

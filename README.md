@@ -89,6 +89,7 @@ uv run alma-linux-remote audit-logs --page-size 20
 审计日志过滤：
 
 ```bash
+uv run alma-linux-remote audit-logs --latest 10
 uv run alma-linux-remote audit-logs --host-name my-server
 uv run alma-linux-remote audit-logs --operation-type run_command
 uv run alma-linux-remote audit-logs --start-time 2026-03-03T00:00:00Z --end-time 2026-03-03T23:59:59Z
