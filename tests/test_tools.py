@@ -229,7 +229,7 @@ def test_query_audit_logs(monkeypatch):
     logger.query_logs.assert_called_once_with(
         page=1,
         page_size=50,
-        latest=None,
+        limit=None,
         host_name="test-server",
         operation_type=None,
         start_time=None,
@@ -238,26 +238,26 @@ def test_query_audit_logs(monkeypatch):
     assert result["total"] == 1
 
 
-def test_query_audit_logs_with_latest(monkeypatch):
+def test_query_audit_logs_with_limit(monkeypatch):
     logger = MagicMock()
     logger.query_logs.return_value = {
         "page": 1,
-        "page_size": 3,
+        "page_size": 2,
         "total": 5,
-        "total_pages": 2,
-        "items": [{"id": 5}, {"id": 4}, {"id": 3}],
+        "total_pages": 3,
+        "items": [{"id": 5}, {"id": 4}],
     }
     monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
 
-    result = query_audit_logs(latest=3)
+    result = query_audit_logs(limit=2)
 
     logger.query_logs.assert_called_once_with(
         page=1,
         page_size=50,
-        latest=3,
+        limit=2,
         host_name=None,
         operation_type=None,
         start_time=None,
         end_time=None,
     )
-    assert [item["id"] for item in result["items"]] == [5, 4, 3]
+    assert [item["id"] for item in result["items"]] == [5, 4]

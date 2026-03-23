@@ -123,7 +123,7 @@ def download_file_batch(
 def query_audit_logs(
     page: int = 1,
     page_size: int = 50,
-    latest: int | None = None,
+    limit: int | None = None,
     host_name: str | None = None,
     operation_type: str | None = None,
     start_time: str | None = None,
@@ -133,7 +133,7 @@ def query_audit_logs(
     return AuditLogger().query_logs(
         page=page,
         page_size=page_size,
-        latest=latest,
+        limit=limit,
         host_name=host_name,
         operation_type=operation_type,
         start_time=start_time,

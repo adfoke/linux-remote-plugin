@@ -162,7 +162,7 @@ class AlmaRuntimeAdapter:
                         "type": "object",
                         "properties": {
                             "page": {"type": "integer", "default": 1},
-                            "latest": {"type": "integer"},
+                            "limit": {"type": "integer"},
                             "host_name": {"type": "string"},
                             "operation_type": {"type": "string"},
                             "start_time": {"type": "string"},
@@ -235,7 +235,7 @@ class AlmaRuntimeAdapter:
         if tool_name == "query_audit_logs":
             return query_audit_logs(
                 page=args.get("page", 1),
-                latest=args.get("latest"),
+                limit=args.get("limit"),
                 host_name=args.get("host_name"),
                 operation_type=args.get("operation_type"),
                 start_time=args.get("start_time"),

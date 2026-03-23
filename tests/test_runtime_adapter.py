@@ -162,14 +162,14 @@ def test_invoke_query_audit_logs(mock_query_audit_logs):
     result = adapter.invoke(
         "query_audit_logs",
         {
-            "latest": 2,
+            "limit": 2,
             "host_name": "test-server",
         },
     )
 
     mock_query_audit_logs.assert_called_once_with(
         page=1,
-        latest=2,
+        limit=2,
         host_name="test-server",
         operation_type=None,
         start_time=None,
