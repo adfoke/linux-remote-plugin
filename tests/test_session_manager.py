@@ -43,6 +43,50 @@ def test_run_command_uses_cached_session(monkeypatch):
     assert len(SessionManager._sessions) == 1
 
 
+def test_ensure_session_closes_stale_session_before_reconnect(monkeypatch):
+    SessionManager._sessions = {}
+    SessionManager._cleanup_thread = None
+
+    host_cfg = HostConfig(
+        host="127.0.0.1",
+        username="u",
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
+    )
+    monkeypatch.setattr("alma_linux_remote_plugin.session_manager.load_hosts", lambda: {"h": host_cfg})
+    monkeypatch.setattr(
+        "alma_linux_remote_plugin.session_manager.SSHManager._connect",
+        lambda *args, **kwargs: None,
+    )
+
+    old_client = MagicMock()
+    old_transport = MagicMock()
+    old_transport.is_active.return_value = False
+    old_client.get_transport.return_value = old_transport
+    old_sftp = MagicMock()
+
+    SessionManager._sessions["h"] = {
+        "client": old_client,
+        "sftp": old_sftp,
+        "last_active": 0,
+        "lock": MagicMock(),
+    }
+
+    new_client = MagicMock()
+    new_transport = MagicMock()
+    new_transport.is_active.return_value = True
+    new_client.get_transport.return_value = new_transport
+    new_sftp = MagicMock()
+    new_client.open_sftp.return_value = new_sftp
+    monkeypatch.setattr("paramiko.SSHClient", lambda: new_client)
+
+    session = SessionManager._ensure_session("h")
+
+    old_sftp.close.assert_called_once()
+    old_client.close.assert_called_once()
+    assert session["client"] is new_client
+    assert session["sftp"] is new_sftp
+
+
 def test_upload_download(monkeypatch):
     session = {
         "client": MagicMock(),

@@ -39,6 +39,23 @@ class SessionManager:
             return SessionConfig(idle_timeout_seconds=300)
 
     @classmethod
+    def _close_session(cls, host_name: str, session: Dict[str, Any], reason: str) -> None:
+        try:
+            session["sftp"].close()
+        except Exception:
+            pass
+
+        try:
+            session["client"].close()
+        except Exception:
+            pass
+
+        try:
+            AuditLogger().log("session_cleanup", host_name, {"reason": reason})
+        except Exception:
+            pass
+
+    @classmethod
     def _ensure_session(cls, host_name: str):
         with cls._lock:
             if host_name in cls._sessions:
@@ -47,17 +64,23 @@ class SessionManager:
                 if transport and transport.is_active():
                     session["last_active"] = time.time()
                     return session
+                cls._close_session(host_name, session, "inactive_transport")
+                cls._sessions.pop(host_name, None)
 
             hosts = load_hosts()
             if host_name not in hosts:
                 raise ValueError(f"主机 {host_name} 未配置")
 
             client = paramiko.SSHClient()
-            SSHManager._connect(client, hosts[host_name])
-            transport = client.get_transport()
-            if transport:
-                transport.set_keepalive(30)
-            sftp = client.open_sftp()
+            try:
+                SSHManager._connect(client, hosts[host_name])
+                transport = client.get_transport()
+                if transport:
+                    transport.set_keepalive(30)
+                sftp = client.open_sftp()
+            except Exception:
+                client.close()
+                raise
 
             session = {
                 "client": client,
@@ -83,12 +106,7 @@ class SessionManager:
                 timeout = cls._get_config().idle_timeout_seconds
                 for host, session in list(cls._sessions.items()):
                     if now - session["last_active"] > timeout:
-                        try:
-                            session["sftp"].close()
-                            session["client"].close()
-                            AuditLogger().log("session_cleanup", host, {"reason": "idle"})
-                        except Exception:
-                            pass
+                        cls._close_session(host, session, "idle")
                         cls._sessions.pop(host, None)
 
     @staticmethod

@@ -78,8 +78,6 @@ class SessionConfig(BaseModel):
 class AuditConfig(BaseModel):
     enabled: bool = True
     db_path: str = "./logs/audit.db"
-    dashboard_host: str = "127.0.0.1"
-    dashboard_port: int = 8765
 
 
 PolicyMode = Literal["blocklist", "strict_allowlist"]

@@ -28,8 +28,6 @@ def setup_test_env(monkeypatch, tmp_path: Path):
         "audit": {
             "enabled": True,
             "db_path": "./logs/audit.db",
-            "dashboard_host": "127.0.0.1",
-            "dashboard_port": 8765,
         },
         "policy": {
             "enabled": True,

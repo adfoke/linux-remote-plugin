@@ -9,12 +9,10 @@ from alma_linux_remote_plugin.models import (
 from alma_linux_remote_plugin.tools import (
     download_file,
     download_file_batch,
-    get_audit_web_server_status,
     list_hosts,
+    query_audit_logs,
     run_command,
     run_command_batch,
-    start_audit_web_server,
-    stop_audit_web_server,
     test_connection as tool_test_connection,
     test_connection_batch,
     upload_file_batch,
@@ -215,52 +213,25 @@ def test_list_hosts(monkeypatch):
     assert list_hosts() == ["test-server"]
 
 
-def test_start_audit_web_server(monkeypatch):
+def test_query_audit_logs(monkeypatch):
     logger = MagicMock()
-    logger.start_dashboard.return_value = "http://127.0.0.1:8765"
-    logger.dashboard_status.return_value = {
-        "running": True,
-        "url": "http://127.0.0.1:8765",
-        "host": "127.0.0.1",
-        "port": 8765,
-        "db_path": "/tmp/audit.db",
+    logger.query_logs.return_value = {
+        "page": 1,
+        "page_size": 50,
+        "total": 1,
+        "total_pages": 1,
+        "items": [{"id": 1}],
     }
     monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
 
-    result = start_audit_web_server()
+    result = query_audit_logs(page=1, page_size=50, host_name="test-server")
 
-    assert result["running"] is True
-    assert result["url"] == "http://127.0.0.1:8765"
-
-
-def test_stop_audit_web_server(monkeypatch):
-    logger = MagicMock()
-    logger.dashboard_status.return_value = {
-        "running": False,
-        "url": None,
-        "host": "127.0.0.1",
-        "port": 8765,
-        "db_path": "/tmp/audit.db",
-    }
-    monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
-
-    result = stop_audit_web_server()
-
-    logger.stop_dashboard.assert_called_once()
-    assert result["running"] is False
-
-
-def test_get_audit_web_server_status(monkeypatch):
-    logger = MagicMock()
-    logger.dashboard_status.return_value = {
-        "running": False,
-        "url": None,
-        "host": "127.0.0.1",
-        "port": 8765,
-        "db_path": "/tmp/audit.db",
-    }
-    monkeypatch.setattr("alma_linux_remote_plugin.tools.AuditLogger", lambda: logger)
-
-    result = get_audit_web_server_status()
-
-    assert result["running"] is False
+    logger.query_logs.assert_called_once_with(
+        page=1,
+        page_size=50,
+        host_name="test-server",
+        operation_type=None,
+        start_time=None,
+        end_time=None,
+    )
+    assert result["total"] == 1

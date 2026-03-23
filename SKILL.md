@@ -1,6 +1,6 @@
 ---
 name: alma-linux-remote-plugin
-description: Stateful Linux remote management for Alma/Pi agents via SSH/SFTP. All remote operations use persistent sessions (no stateless mode), with 5-minute idle timeout, SQLite audit logging, and FastAPI dashboard for audit viewing.
+description: SSH/SFTP remote ops for Alma agents with persistent sessions, command blocking, and SQLite audit logs.
 allowed-tools:
   - Bash
   - Read
@@ -9,140 +9,90 @@ allowed-tools:
 
 # Alma Linux Remote Plugin Skill
 
-## Purpose
+## 作用
 
-Use this skill to operate remote Linux hosts safely through the plugin tools:
+这个插件用于：
 
-- `list_hosts`
-- `test_connection`
-- `run_command`
-- `upload_file`
-- `download_file`
+- 查主机
+- 建立或复用 SSH 会话
+- 执行命令
+- 上传文件
+- 下载文件
+- 查审计日志
 
-This project is **stateful-first**:
+## 先后顺序
 
-- `test_connection` now also uses persistent session flow
-- if session exists → reuse
-- if not → auto-create
-- idle timeout defaults to **300 seconds (5 minutes)**
+默认按这个顺序：
 
----
+1. `list_hosts`
+2. `test_connection(host_name)`
+3. `run_command` / `upload_file` / `download_file`
+4. 总结结果和风险
 
-## Required Execution Order (Agent Policy)
+不要猜主机名。只用 `hosts.yaml` 里已有的名字。
 
-When handling user requests, follow this order unless user explicitly overrides:
+## 工具
 
-1. `list_hosts` (discover available targets)
-2. `test_connection(host_name)` (validate or create session)
-3. `run_command(...)` / `upload_file(...)` / `download_file(...)`
-4. Summarize outputs and risks clearly
+- `list_hosts()`
+- `test_connection(host_name, timeout=15)`
+- `run_command(host_name, command, timeout=60)`
+- `upload_file(host_name, local_path, remote_path)`
+- `download_file(host_name, remote_path, local_path)`
 
-Do **not** assume host aliases that are not in `hosts.yaml`.
+批量工具也可用：
 
----
+- `test_connection_batch`
+- `run_command_batch`
+- `upload_file_batch`
+- `download_file_batch`
 
-## Tool Contracts
+## 会话规则
 
-### 1) list_hosts
-- args: `{}`
-- returns: `string[]`
+- 每台主机一个 session
+- 有 session 就复用
+- 没有就自动创建
+- 默认空闲 300 秒清理
 
-### 2) test_connection
-- args: `{ "host_name": string, "timeout"?: number }`
-- behavior: uses persistent session manager (reuse/create session)
-- returns: success/failure message string
+如果命令因为连接失效失败，先重新 `test_connection`，再重试一次。
 
-### 3) run_command
-- args: `{ "host_name": string, "command": string, "timeout"?: number }`
-- returns:
-  - `command`
-  - `exit_code`
-  - `stdout`
-  - `stderr`
-  - `success`
+## 审计日志
 
-### 4) upload_file
-- args: `{ "host_name": string, "local_path": string, "remote_path": string }`
-- returns: message string
+日志在 SQLite：
 
-### 5) download_file
-- args: `{ "host_name": string, "remote_path": string, "local_path": string }`
-- returns: message string
-
----
-
-## Session Semantics
-
-- Session key: per `host_name`
-- Auto keepalive enabled
-- Idle cleanup thread runs periodically
-- Cleanup threshold: `session.idle_timeout_seconds` (default 300)
-
-If a command fails due to stale transport, retry once by re-running `test_connection` then re-run command.
-
----
-
-## Audit & Observability
-
-Audit is stored in SQLite (no JSONL file mode):
-
-- default DB: `./logs/audit.db`
+- DB: `./logs/audit.db`
 - table: `audit_logs`
 
-FastAPI dashboard:
+查日志走 CLI：
 
-- `GET /` → web page
-- `GET /api/logs` → query API
+```bash
+alma-linux-remote audit-logs --page-size 50
+alma-linux-remote audit-logs --host-name prod-web-1
+alma-linux-remote audit-logs --operation-type run_command
+```
 
-Supported query parameters:
+支持过滤：
 
 - `page`
 - `page_size`
 - `host_name`
 - `operation_type`
-- `start_time` (ISO8601)
-- `end_time` (ISO8601)
+- `start_time`
+- `end_time`
 
-When user asks “查看AI操作日志”, prefer directing to dashboard/API filters first.
+## 安全
 
----
+- 不要输出 `.env` 里的密钥口令
+- 不要编造命令结果
+- 命令策略默认是 `blocklist`
+- 被拦截的命令不要绕过
+- 返回结果时带上主机名和命令
 
-## Safety Rules
+## 响应格式
 
-- Never echo secrets from `.env` (key passphrase or other secrets)
-- Never fabricate command output
-- Command policy is configurable:
-  - `policy.default_mode = blocklist` (default)
-  - `policy.default_mode = strict_allowlist`
-  - `policy.host_overrides.<host>` for per-host policy
-- If command is blocked, return clear manual steps; do not attempt bypass
-- Always show host + command in response summary
+每次操作至少写清楚：
 
----
-
-## Recommended Response Style
-
-For each remote action, report:
-
-1. Target host
-2. Command/file action
-3. Exit result (success/failure)
-4. Key stdout/stderr summary
-5. Next suggested step
-
----
-
-## Examples
-
-### Health check
-1. `list_hosts`
-2. `test_connection("prod-web-1")`
-3. `run_command("prod-web-1", "uptime && df -h")`
-
-### Upload and verify
-1. `test_connection("prod-web-1")`
-2. `upload_file("prod-web-1", "./deploy.sh", "/tmp/deploy.sh")`
-3. `run_command("prod-web-1", "chmod +x /tmp/deploy.sh && /tmp/deploy.sh --check")`
-
-### Audit query (API)
-- `/api/logs?page=1&page_size=50&host_name=prod-web-1&start_time=2026-03-03T00:00:00Z&end_time=2026-03-03T23:59:59Z`
+1. 主机
+2. 动作
+3. 是否成功
+4. 关键输出
+5. 下一步

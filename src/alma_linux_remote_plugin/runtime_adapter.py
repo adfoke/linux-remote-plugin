@@ -6,12 +6,9 @@ from .models import BatchCommandResult, BatchConnectionResult, BatchTransferResu
 from .tools import (
     download_file,
     download_file_batch,
-    get_audit_web_server_status,
     list_hosts,
     run_command,
     run_command_batch,
-    start_audit_web_server,
-    stop_audit_web_server,
     test_connection,
     test_connection_batch,
     upload_file_batch,
@@ -176,37 +173,6 @@ class AlmaRuntimeAdapter:
                     },
                 },
             },
-            {
-                "type": "function",
-                "function": {
-                    "name": "start_audit_web_server",
-                    "description": "手动启动 SQLite 审计日志 Web 服务，默认不会自动启动",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "host": {"type": "string"},
-                            "port": {"type": "integer"},
-                        },
-                        "required": [],
-                    },
-                },
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "stop_audit_web_server",
-                    "description": "手动停止 SQLite 审计日志 Web 服务",
-                    "parameters": {"type": "object", "properties": {}, "required": []},
-                },
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_audit_web_server_status",
-                    "description": "查询 SQLite 审计日志 Web 服务状态",
-                    "parameters": {"type": "object", "properties": {}, "required": []},
-                },
-            },
         ]
 
     def invoke(self, tool_name: str, args: Dict[str, Any]) -> Any:
@@ -254,12 +220,6 @@ class AlmaRuntimeAdapter:
                 args.get("max_workers", 5),
             )
             return result.model_dump()
-        if tool_name == "start_audit_web_server":
-            return start_audit_web_server(args.get("host"), args.get("port"))
-        if tool_name == "stop_audit_web_server":
-            return stop_audit_web_server()
-        if tool_name == "get_audit_web_server_status":
-            return get_audit_web_server_status()
         raise ValueError(f"未知工具: {tool_name}")
 
 

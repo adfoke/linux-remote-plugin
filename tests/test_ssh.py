@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import paramiko
 import pytest
 
 from alma_linux_remote_plugin.models import HostAuth, HostConfig
@@ -72,3 +73,20 @@ def test_connect_key_passphrase_env_missing(mock_ssh_client):
 
     with pytest.raises(ValueError, match="环境变量 MISSING_ENV 未设置"):
         SSHManager._connect(mock_ssh_client.return_value, host_config)
+
+
+@patch("paramiko.SSHClient")
+def test_connect_uses_known_hosts_and_reject_policy(mock_ssh_client):
+    host_config = HostConfig(
+        host="127.0.0.1",
+        username="testuser",
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
+    )
+
+    client = mock_ssh_client.return_value
+    SSHManager._connect(client, host_config)
+
+    client.load_system_host_keys.assert_called_once()
+    client.set_missing_host_key_policy.assert_called_once()
+    policy = client.set_missing_host_key_policy.call_args.args[0]
+    assert isinstance(policy, paramiko.RejectPolicy)

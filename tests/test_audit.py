@@ -1,6 +1,5 @@
 import sqlite3
 from datetime import datetime, timedelta, timezone
-from urllib.request import urlopen
 
 from alma_linux_remote_plugin.audit import AuditLogger
 
@@ -26,7 +25,7 @@ def test_audit_logger_writes_sqlite(monkeypatch, tmp_path):
     assert '"success": true' in row[2]
 
 
-def test_audit_dashboard_api_with_pagination_and_time_range(monkeypatch, tmp_path):
+def test_audit_query_logs_with_pagination_and_time_range(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
 
     AuditLogger._instance = None
@@ -53,29 +52,26 @@ def test_audit_dashboard_api_with_pagination_and_time_range(monkeypatch, tmp_pat
         )
         conn.commit()
 
-    url = logger.start_dashboard(port=0)
-    try:
-        with urlopen(f"{url}/api/logs?page=1&page_size=1") as resp:
-            body = resp.read().decode("utf-8")
-        assert '"page":1' in body
-        assert '"page_size":1' in body
+    page_one = logger.query_logs(page=1, page_size=1)
+    assert page_one["page"] == 1
+    assert page_one["page_size"] == 1
+    assert len(page_one["items"]) == 1
 
-        start_time = (now - timedelta(hours=1)).isoformat().replace("+00:00", "Z")
-        with urlopen(f"{url}/api/logs?page=1&page_size=10&start_time={start_time}") as resp:
-            body2 = resp.read().decode("utf-8")
-        assert '"total":1' in body2
-    finally:
-        logger.stop_dashboard()
+    start_time = (now - timedelta(hours=1)).isoformat().replace("+00:00", "Z")
+    filtered = logger.query_logs(page=1, page_size=10, start_time=start_time)
+    assert filtered["total"] == 1
+    assert filtered["items"][0]["operation_type"] == "run_command"
 
 
-def test_audit_dashboard_status_defaults_to_stopped(monkeypatch, tmp_path):
+def test_audit_query_logs_rejects_invalid_time_filter(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
 
     AuditLogger._instance = None
     logger = AuditLogger()
 
-    status = logger.dashboard_status()
-
-    assert status["running"] is False
-    assert status["url"] is None
-    assert status["port"] == 8765
+    try:
+        logger.query_logs(start_time="bad")
+    except ValueError as exc:
+        assert "非法时间格式" in str(exc)
+    else:
+        raise AssertionError("expected ValueError")

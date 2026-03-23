@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .audit import AuditLogger
 from .config import load_hosts
@@ -120,20 +120,20 @@ def download_file_batch(
     )
 
 
-def start_audit_web_server(host: Optional[str] = None, port: Optional[int] = None) -> Dict[str, Any]:
-    """手动启动审计日志 Web 服务。默认不启动，按需显式调用。"""
-    logger = AuditLogger()
-    url = logger.start_dashboard(host=host, port=port)
-    return logger.dashboard_status() | {"url": url}
-
-
-def stop_audit_web_server() -> Dict[str, Any]:
-    """手动停止审计日志 Web 服务。"""
-    logger = AuditLogger()
-    logger.stop_dashboard()
-    return logger.dashboard_status()
-
-
-def get_audit_web_server_status() -> Dict[str, Any]:
-    """查询审计日志 Web 服务状态。"""
-    return AuditLogger().dashboard_status()
+def query_audit_logs(
+    page: int = 1,
+    page_size: int = 50,
+    host_name: str | None = None,
+    operation_type: str | None = None,
+    start_time: str | None = None,
+    end_time: str | None = None,
+) -> Dict[str, Any]:
+    """查询 SQLite 审计日志。"""
+    return AuditLogger().query_logs(
+        page=page,
+        page_size=page_size,
+        host_name=host_name,
+        operation_type=operation_type,
+        start_time=start_time,
+        end_time=end_time,
+    )

@@ -30,7 +30,8 @@ class SSHManager:
                 raise ValueError(f"环境变量 {auth.passphrase_env} 未设置")
             kwargs["passphrase"] = passphrase
 
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.RejectPolicy())
         client.connect(**kwargs)
 
     @staticmethod

@@ -1,75 +1,48 @@
 # alma-linux-remote-plugin
 
-> 专为 Alma AI Agent 设计的 Linux 远程运维插件（SSH/SFTP，持久会话版）
+给 Alma Agent 用的 Linux 远程操作插件。
 
-`alma-linux-remote-plugin` 提供一组可被 Agent 调用的工具，用于：
-
-- 列出主机
-- 测试 SSH 连通性
-- 在远程主机执行命令
-- 上传文件到远程主机
-- 从远程主机下载文件
-
-项目基于 `paramiko`，并支持**懒加载持久会话**（`test_connection/run_command/upload_file/download_file` 全部走 `SessionManager`）。
-
----
-
-## 功能特性
-
-- ✅ 持久会话连通性测试（`test_connection`，有会话复用，无会话自动创建）
-- ✅ 持久会话命令执行（`run_command`）
-- ✅ 危险命令自动拦截（不打断对话流，不执行高危命令）
-- ✅ 支持命令策略配置（blocklist / strict_allowlist，支持按主机覆盖）
-- ✅ SFTP 上传/下载（`upload_file` / `download_file`）
-- ✅ YAML 主机配置加载（`hosts.yaml`）
-- ✅ 仅支持 SSH 密钥认证（可选密钥口令来自 `.env`）
-- ✅ SQLite 审计日志（默认 `./logs/audit.db`）
-
----
+支持：
+- SSH 连通性检查
+- 持久会话执行命令
+- 上传文件
+- 下载文件
+- SQLite 审计日志
+- CLI 查询审计日志
 
 ## 安装
 
-推荐使用 `uv`：
-
 ```bash
-uv sync --all-extras
+uv sync --group dev
 ```
 
-或用 pip：
+或：
 
 ```bash
 pip install -e .[dev]
 ```
 
----
-
 ## 配置
 
-### 1) 环境变量
-
-复制并编辑：
+先准备环境变量：
 
 ```bash
 cp .env.example .env
 ```
 
-`.env.example` 示例：
+`.env` 只在私钥有口令时需要：
 
 ```env
 MY_SERVER_KEY_PASS=your_key_passphrase
 ```
 
-> 仅在私钥设置口令时需要；`passphrase_env` 会读取这个环境变量。
-
-### 2) 主机配置
-
-复制模板：
+再准备主机配置：
 
 ```bash
 cp hosts.yaml.example hosts.yaml
 ```
 
-`hosts.yaml.example` 当前内容：
+最小配置：
 
 ```yaml
 hosts:
@@ -80,97 +53,52 @@ hosts:
       method: key
       key_path: ~/.ssh/id_ed25519
       passphrase_env: MY_SERVER_KEY_PASS
-  dev-box:
-    host: dev.example.com
-    username: ubuntu
-    auth:
-      method: key
-      key_path: ~/.ssh/id_ed25519
-```
 
-你也可以加上可选配置：
-
-```yaml
 session:
   idle_timeout_seconds: 300
 
 audit:
   enabled: true
   db_path: ./logs/audit.db
-  dashboard_host: 127.0.0.1
-  dashboard_port: 8765
 
 policy:
   enabled: true
-  default_mode: blocklist # blocklist | strict_allowlist
-
-  # blocklist 模式：命中即拦截；为空则使用内置高危规则
-  block_patterns:
-    - "\\brm\\s+-rf\\s+/(\\s|$)"
-
-  # strict_allowlist 模式：仅允许命中以下规则
-  allow_patterns:
-    - "^ls(\\s|$)"
-    - "^cat\\s+/etc/"
-
-  # 按主机覆盖策略
-  host_overrides:
-    prod-box:
-      mode: strict_allowlist
-      allow_patterns:
-        - "^systemctl\\s+status\\s+nginx$"
+  default_mode: blocklist
 ```
 
+## CLI
 
----
+看帮助：
 
-## 审计日志后台页面
-
-已改为数据库模式，不再写 `audit.jsonl` 文件。
-
-默认情况下，审计日志 Web 服务处于关闭状态，不会随插件自动启动。只有在你显式调用启动接口时，FastAPI + Uvicorn 才会启动。
-
-默认配置：
-
-- `db_path = ./logs/audit.db`
-- `dashboard_host = 127.0.0.1`
-- `dashboard_port = 8765`
-
-你可以在运行时手动启动日志后台页面（FastAPI + Uvicorn）：
-
-```python
-from alma_linux_remote_plugin.audit import AuditLogger
-
-url = AuditLogger().start_dashboard()
-print(url)  # 例如 http://127.0.0.1:8765
+```bash
+uv run alma-linux-remote --help
+uv run alma-linux-remote --h
 ```
 
-也可以通过插件工具手动控制：
+常用命令：
 
-```python
-from alma_linux_remote_plugin.runtime_adapter import invoke
-
-print(invoke("get_audit_web_server_status", {}))
-print(invoke("start_audit_web_server", {}))
-print(invoke("stop_audit_web_server", {}))
+```bash
+uv run alma-linux-remote list-hosts
+uv run alma-linux-remote test-connection my-server
+uv run alma-linux-remote run-command my-server "uname -a"
+uv run alma-linux-remote upload-file my-server ./a.txt /tmp/a.txt
+uv run alma-linux-remote download-file my-server /tmp/a.txt ./a.txt
+uv run alma-linux-remote audit-logs --page-size 20
 ```
 
-可用接口：
+审计日志过滤：
 
-- `GET /`：日志页面
-- `GET /api/logs?page=1&page_size=50&host_name=xxx&operation_type=yyy&start_time=2026-03-03T00:00:00Z&end_time=2026-03-03T23:59:59Z`
+```bash
+uv run alma-linux-remote audit-logs --host-name my-server
+uv run alma-linux-remote audit-logs --operation-type run_command
+uv run alma-linux-remote audit-logs --start-time 2026-03-03T00:00:00Z --end-time 2026-03-03T23:59:59Z
+```
 
-危险命令拦截会以 `operation_type = dangerous_block` 写入审计库，便于追踪。
-在审计详情中可看到 `policy_mode` 与 `policy_reason`。
+默认输出 JSON。
 
-说明：
+## Runtime Tools
 
-- 支持分页：`page`、`page_size`
-- 支持时间范围过滤（ISO8601）：`start_time`、`end_time`
-
----
-
-## 工具列表（Runtime Adapter）
+可用工具：
 
 - `list_hosts()`
 - `test_connection(host_name, timeout=15)`
@@ -181,102 +109,23 @@ print(invoke("stop_audit_web_server", {}))
 - `upload_file_batch(host_names, local_path, remote_path, max_workers=5)`
 - `download_file(host_name, remote_path, local_path)`
 - `download_file_batch(host_names, remote_path, local_path_template, max_workers=5)`
-- `start_audit_web_server(host=None, port=None)`
-- `stop_audit_web_server()`
-- `get_audit_web_server_status()`
 
-对应入口：
+入口：
 
 - `src/alma_linux_remote_plugin/runtime_adapter.py`
-- `manifest.json`（插件元信息）
+- `manifest.json`
 
----
+## 规则
 
-## Python 快速调用示例
+- 只支持 key 登录
+- 主机 key 必须已在本机 `known_hosts` 中
+- 默认复用持久会话
+- 空闲超时默认 300 秒
+- 危险命令会被拦截
+- 审计日志写入 `./logs/audit.db`
 
-```python
-from alma_linux_remote_plugin.runtime_adapter import invoke
-
-# 列出主机
-print(invoke("list_hosts", {}))
-
-# 测试连接
-print(invoke("test_connection", {"host_name": "my-server"}))
-
-# 批量测试连接
-print(invoke("test_connection_batch", {
-    "host_names": ["web-1", "web-2", "web-3"],
-    "max_workers": 3
-}))
-
-# 执行命令
-res = invoke("run_command", {
-    "host_name": "my-server",
-    "command": "uname -a"
-})
-print(res)
-
-# 批量执行命令
-batch_res = invoke("run_command_batch", {
-    "host_names": ["web-1", "web-2", "web-3"],
-    "command": "uptime",
-    "max_workers": 3
-})
-print(batch_res)
-
-# 批量上传同一个文件到多台主机
-upload_res = invoke("upload_file_batch", {
-    "host_names": ["web-1", "web-2"],
-    "local_path": "./deploy.sh",
-    "remote_path": "/tmp/deploy.sh",
-    "max_workers": 2
-})
-print(upload_res)
-
-# 批量下载同一路径文件到按主机区分的本地路径
-download_res = invoke("download_file_batch", {
-    "host_names": ["web-1", "web-2"],
-    "remote_path": "/var/log/nginx/access.log",
-    "local_path_template": "./downloads/{host_name}-{remote_basename}",
-    "max_workers": 2
-})
-print(download_res)
-```
-
-`run_command_batch` 会并发执行，但返回结果顺序会保持与 `host_names` 输入一致。
-单台主机失败或被策略拦截时，不会中断整批任务；请检查返回中的 `success`、`blocked` 与 `reason` 字段。
-`download_file_batch` 要求 `local_path_template` 至少包含 `{host_name}`，可选再带 `{remote_basename}`，避免多台主机下载到同一个本地文件。
-
----
-
-## 开发与测试
-
-运行测试：
+## 测试
 
 ```bash
-uv run pytest -q
+uv run --group dev python -m pytest
 ```
-
-代码检查：
-
-```bash
-uv run ruff check src tests
-```
-
----
-
-## 常见问题
-
-### `hosts 文件不存在`
-
-请确认当前工作目录下存在 `hosts.yaml`，并且文件名正确。
-
-### `环境变量 XXX 未设置`
-
-如果你在 `hosts.yaml` 里配置了 `passphrase_env`，请确认 `.env` 中存在该变量，或在系统环境变量中导出。
-
----
-
-## 许可证
-
-MIT License，见 [LICENSE](./LICENSE)。

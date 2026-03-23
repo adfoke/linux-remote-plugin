@@ -7,7 +7,7 @@ from alma_linux_remote_plugin.runtime_adapter import adapter
 
 def test_get_tools():
     tools = adapter.get_tools()
-    assert len(tools) == 12
+    assert len(tools) == 9
 
 
 @patch("alma_linux_remote_plugin.runtime_adapter.list_hosts")
@@ -147,33 +147,6 @@ def test_invoke_download_file_batch(mock_download_file_batch):
         },
     )
     assert result["failure_count"] == 1
-
-
-@patch("alma_linux_remote_plugin.runtime_adapter.start_audit_web_server")
-def test_invoke_start_audit_web_server(mock_start):
-    mock_start.return_value = {"running": True, "url": "http://127.0.0.1:8765"}
-
-    result = adapter.invoke("start_audit_web_server", {})
-
-    assert result["running"] is True
-
-
-@patch("alma_linux_remote_plugin.runtime_adapter.stop_audit_web_server")
-def test_invoke_stop_audit_web_server(mock_stop):
-    mock_stop.return_value = {"running": False, "url": None}
-
-    result = adapter.invoke("stop_audit_web_server", {})
-
-    assert result["running"] is False
-
-
-@patch("alma_linux_remote_plugin.runtime_adapter.get_audit_web_server_status")
-def test_invoke_get_audit_web_server_status(mock_status):
-    mock_status.return_value = {"running": False, "url": None}
-
-    result = adapter.invoke("get_audit_web_server_status", {})
-
-    assert result["running"] is False
 
 
 def test_invoke_unknown_tool():
