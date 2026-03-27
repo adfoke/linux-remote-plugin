@@ -286,6 +286,11 @@ def _error(command_name: str, message: str, output_format: str) -> int:
 
 
 def _exit_code_for_success(data: Any) -> int:
+    if isinstance(data, dict):
+        if "success" in data:
+            return 0 if bool(data["success"]) else max(1, int(data.get("exit_code", 1) or 1))
+        if "failure_count" in data:
+            return 0 if int(data["failure_count"]) == 0 else 1
     if hasattr(data, "success"):
         return 0 if bool(data.success) else max(1, int(getattr(data, "exit_code", 1) or 1))
     if hasattr(data, "failure_count"):

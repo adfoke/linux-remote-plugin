@@ -123,6 +123,20 @@ def test_cli_run_command_returns_remote_exit_code(monkeypatch, capsys):
     assert payload["data"]["success"] is False
 
 
+def test_cli_test_connection_returns_nonzero_on_failure(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "linux_remote_tool.cli.test_connection",
+        lambda host_name, timeout: f"{host_name} 连接异常: boom",
+    )
+
+    exit_code = main(["test-connection", "web-1"])
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 1
+    assert payload["data"]["success"] is False
+
+
 def test_cli_run_command_batch_uses_failure_exit_code(monkeypatch, capsys):
     monkeypatch.setattr(
         "linux_remote_tool.cli.run_command_batch",

@@ -13,6 +13,8 @@ from .config import load_config, load_hosts
 from .models import (
     BatchCommandItem,
     BatchCommandResult,
+    BatchConnectionItem,
+    BatchConnectionResult,
     BatchTransferItem,
     BatchTransferResult,
     CommandResult,
@@ -56,7 +58,20 @@ class SessionManager:
             pass
 
     @classmethod
-    def _ensure_session(cls, host_name: str):
+    def _close_client_resources(cls, client: paramiko.SSHClient, sftp: Any | None = None) -> None:
+        if sftp is not None:
+            try:
+                sftp.close()
+            except Exception:
+                pass
+
+        try:
+            client.close()
+        except Exception:
+            pass
+
+    @classmethod
+    def _ensure_session(cls, host_name: str, timeout: int = 30):
         with cls._lock:
             if host_name in cls._sessions:
                 session = cls._sessions[host_name]
@@ -70,17 +85,31 @@ class SessionManager:
             hosts = load_hosts()
             if host_name not in hosts:
                 raise ValueError(f"主机 {host_name} 未配置")
+            host_cfg = hosts[host_name]
 
-            client = paramiko.SSHClient()
-            try:
-                SSHManager._connect(client, hosts[host_name])
-                transport = client.get_transport()
-                if transport:
-                    transport.set_keepalive(30)
-                sftp = client.open_sftp()
-            except Exception:
-                client.close()
-                raise
+        client = paramiko.SSHClient()
+        sftp = None
+        try:
+            SSHManager._connect(client, host_cfg, timeout)
+            transport = client.get_transport()
+            if transport:
+                transport.set_keepalive(30)
+            sftp = client.open_sftp()
+        except Exception:
+            cls._close_client_resources(client, sftp)
+            raise
+
+        session_started = False
+        with cls._lock:
+            existing_session = cls._sessions.get(host_name)
+            if existing_session:
+                transport = existing_session["client"].get_transport()
+                if transport and transport.is_active():
+                    existing_session["last_active"] = time.time()
+                    cls._close_client_resources(client, sftp)
+                    return existing_session
+                cls._close_session(host_name, existing_session, "inactive_transport")
+                cls._sessions.pop(host_name, None)
 
             session = {
                 "client": client,
@@ -89,13 +118,15 @@ class SessionManager:
                 "lock": threading.Lock(),
             }
             cls._sessions[host_name] = session
+            session_started = True
 
             if cls._cleanup_thread is None or not cls._cleanup_thread.is_alive():
                 cls._cleanup_thread = threading.Thread(target=cls._cleanup_idle, daemon=True)
                 cls._cleanup_thread.start()
 
+        if session_started:
             AuditLogger().log("session_auto_start", host_name, {"lazy": True})
-            return session
+        return session
 
     @classmethod
     def _cleanup_idle(cls):
@@ -175,7 +206,7 @@ class SessionManager:
             )
             return blocked_result
 
-        session = cls._ensure_session(host_name)
+        session = cls._ensure_session(host_name, timeout)
         with session["lock"]:
             start = time.perf_counter()
             client = session["client"]
@@ -210,6 +241,78 @@ class SessionManager:
             except Exception as e:
                 AuditLogger().log("run_command", host_name, {"error": str(e)})
                 raise
+
+    @classmethod
+    def test_connection(cls, host_name: str, timeout: int = 15) -> None:
+        start = time.perf_counter()
+        try:
+            session = cls._ensure_session(host_name, timeout)
+            session["last_active"] = time.time()
+            AuditLogger().log(
+                "test_connection",
+                host_name,
+                {
+                    "success": True,
+                    "duration_ms": int((time.perf_counter() - start) * 1000),
+                    "session_mode": "persistent",
+                },
+            )
+        except Exception as exc:
+            AuditLogger().log(
+                "test_connection",
+                host_name,
+                {
+                    "success": False,
+                    "error": str(exc),
+                },
+            )
+            raise
+
+    @classmethod
+    def test_connection_batch(
+        cls,
+        host_names: list[str],
+        timeout: int = 15,
+        max_workers: int = 5,
+    ) -> BatchConnectionResult:
+        unique_host_names = cls._prepare_batch_hosts(host_names)
+        worker_count = cls._resolve_worker_count(max_workers, len(unique_host_names))
+
+        def _run_one(host_name: str) -> BatchConnectionItem:
+            try:
+                cls.test_connection(host_name, timeout)
+                return BatchConnectionItem(
+                    host_name=host_name,
+                    success=True,
+                    message=f"{host_name} 连接成功",
+                )
+            except Exception as exc:
+                return BatchConnectionItem(
+                    host_name=host_name,
+                    success=False,
+                    message=f"{host_name} 连接异常: {exc}",
+                )
+
+        ordered_items = cls._execute_batch(unique_host_names, worker_count, _run_one)
+        success_count = sum(1 for item in ordered_items if item.success)
+        batch_result = BatchConnectionResult(
+            total=len(ordered_items),
+            success_count=success_count,
+            failure_count=len(ordered_items) - success_count,
+            items=ordered_items,
+        )
+        AuditLogger().log(
+            "test_connection_batch",
+            ",".join(unique_host_names),
+            {
+                "host_count": len(unique_host_names),
+                "success_count": batch_result.success_count,
+                "failure_count": batch_result.failure_count,
+                "max_workers": worker_count,
+                "hosts": unique_host_names,
+            },
+        )
+        return batch_result
 
     @classmethod
     def run_command_batch(

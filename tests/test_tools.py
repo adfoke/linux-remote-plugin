@@ -1,8 +1,9 @@
 from unittest.mock import MagicMock
 
 from linux_remote_tool.models import (
-    BatchCommandItem,
     BatchCommandResult,
+    BatchConnectionItem,
+    BatchConnectionResult,
     BatchTransferItem,
     BatchTransferResult,
 )
@@ -21,69 +22,50 @@ from linux_remote_tool.tools import (
 
 
 def test_test_connection_success(monkeypatch):
-    mock_result = MagicMock()
-    mock_result.success = True
     monkeypatch.setattr(
-        "linux_remote_tool.tools.SessionManager.run_command",
-        lambda *args, **kwargs: mock_result,
+        "linux_remote_tool.tools.SessionManager.test_connection",
+        lambda *args, **kwargs: None,
     )
 
     result = tool_test_connection("test-server")
     assert "连接成功" in result
 
 
-def test_test_connection_failure(monkeypatch):
-    mock_result = MagicMock()
-    mock_result.success = False
-    monkeypatch.setattr(
-        "linux_remote_tool.tools.SessionManager.run_command",
-        lambda *args, **kwargs: mock_result,
-    )
-
-    result = tool_test_connection("test-server")
-    assert "连接失败" in result
-
-
 def test_test_connection_exception(monkeypatch):
     def raise_exc(*args, **kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("linux_remote_tool.tools.SessionManager.run_command", raise_exc)
+    monkeypatch.setattr(
+        "linux_remote_tool.tools.SessionManager.test_connection",
+        raise_exc,
+    )
+
     result = tool_test_connection("test-server")
     assert "连接异常" in result
 
 
 def test_test_connection_batch(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_tool.tools.SessionManager.run_command_batch",
-        lambda *args, **kwargs: BatchCommandResult(
+        "linux_remote_tool.tools.SessionManager.test_connection_batch",
+        lambda *args, **kwargs: BatchConnectionResult(
             total=3,
             success_count=1,
             failure_count=2,
             items=[
-                BatchCommandItem(
+                BatchConnectionItem(
                     host_name="ok-host",
-                    command="echo 'connected'",
-                    exit_code=0,
-                    stdout="connected",
-                    stderr="",
                     success=True,
+                    message="ok-host 连接成功",
                 ),
-                BatchCommandItem(
+                BatchConnectionItem(
                     host_name="fail-host",
-                    command="echo 'connected'",
-                    exit_code=1,
-                    stdout="",
-                    stderr="",
                     success=False,
+                    message="fail-host 连接异常: denied",
                 ),
-                BatchCommandItem(
+                BatchConnectionItem(
                     host_name="err-host",
-                    command="echo 'connected'",
-                    exit_code=255,
-                    stdout="",
-                    stderr="boom",
                     success=False,
+                    message="err-host 连接异常: boom",
                 ),
             ],
         ),
@@ -95,7 +77,7 @@ def test_test_connection_batch(monkeypatch):
     assert result.success_count == 1
     assert result.failure_count == 2
     assert result.items[0].message == "ok-host 连接成功"
-    assert result.items[1].message == "fail-host 连接失败"
+    assert result.items[1].message == "fail-host 连接异常: denied"
     assert result.items[2].message == "err-host 连接异常: boom"
 
 

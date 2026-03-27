@@ -6,7 +6,6 @@ from .audit import AuditLogger
 from .config import load_hosts
 from .models import (
     BatchCommandResult,
-    BatchConnectionItem,
     BatchConnectionResult,
     BatchTransferResult,
     CommandResult,
@@ -22,8 +21,8 @@ def list_hosts() -> List[str]:
 def test_connection(host_name: str, timeout: int = 15) -> str:
     """测试连通性（复用/创建持久会话）。"""
     try:
-        result = SessionManager.run_command(host_name, "echo 'connected'", timeout)
-        return f"{host_name} 连接成功" if result.success else f"{host_name} 连接失败"
+        SessionManager.test_connection(host_name, timeout)
+        return f"{host_name} 连接成功"
     except Exception as e:
         return f"{host_name} 连接异常: {e}"
 
@@ -39,37 +38,7 @@ def test_connection_batch(
     max_workers: int = 5,
 ) -> BatchConnectionResult:
     """并发测试多台主机连通性，返回逐台结果。"""
-    batch_result = SessionManager.run_command_batch(
-        host_names,
-        "echo 'connected'",
-        timeout,
-        max_workers,
-    )
-    items: List[BatchConnectionItem] = []
-    for item in batch_result.items:
-        if item.success:
-            message = f"{item.host_name} 连接成功"
-        elif item.exit_code == 255 and item.stderr:
-            message = f"{item.host_name} 连接异常: {item.stderr}"
-        else:
-            message = f"{item.host_name} 连接失败"
-        items.append(
-            BatchConnectionItem(
-                host_name=item.host_name,
-                success=item.success,
-                message=message,
-                blocked=item.blocked,
-                reason=item.reason,
-            )
-        )
-
-    success_count = sum(1 for item in items if item.success)
-    return BatchConnectionResult(
-        total=len(items),
-        success_count=success_count,
-        failure_count=len(items) - success_count,
-        items=items,
-    )
+    return SessionManager.test_connection_batch(host_names, timeout, max_workers)
 
 
 test_connection_batch.__test__ = False

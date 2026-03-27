@@ -6,6 +6,19 @@ from linux_remote_tool.models import HostAuth, HostConfig
 from linux_remote_tool.session_manager import SessionManager
 
 
+class _TrackingLock:
+    def __init__(self):
+        self.depth = 0
+
+    def __enter__(self):
+        self.depth += 1
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.depth -= 1
+        return False
+
+
 def test_run_command_uses_cached_session(monkeypatch):
     SessionManager._sessions = {}
     SessionManager._cleanup_thread = None
@@ -87,6 +100,43 @@ def test_ensure_session_closes_stale_session_before_reconnect(monkeypatch):
     assert session["sftp"] is new_sftp
 
 
+def test_ensure_session_connects_outside_global_lock(monkeypatch):
+    SessionManager._sessions = {}
+    cleanup_thread = MagicMock()
+    cleanup_thread.is_alive.return_value = True
+    SessionManager._cleanup_thread = cleanup_thread
+
+    host_cfg = HostConfig(
+        host="127.0.0.1",
+        username="u",
+        auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
+    )
+    monkeypatch.setattr("linux_remote_tool.session_manager.load_hosts", lambda: {"h": host_cfg})
+
+    tracking_lock = _TrackingLock()
+    monkeypatch.setattr(SessionManager, "_lock", tracking_lock)
+
+    client = MagicMock()
+    transport = MagicMock()
+    transport.is_active.return_value = True
+    client.get_transport.return_value = transport
+    sftp = MagicMock()
+    client.open_sftp.return_value = sftp
+    monkeypatch.setattr("paramiko.SSHClient", lambda: client)
+
+    lock_depths: list[int] = []
+
+    def fake_connect(*args, **kwargs):
+        lock_depths.append(tracking_lock.depth)
+
+    monkeypatch.setattr("linux_remote_tool.session_manager.SSHManager._connect", fake_connect)
+
+    session = SessionManager._ensure_session("h", timeout=5)
+
+    assert session["client"] is client
+    assert lock_depths == [0]
+
+
 def test_upload_download(monkeypatch):
     session = {
         "client": MagicMock(),
@@ -129,6 +179,29 @@ def test_run_command_block_dangerous(monkeypatch):
     assert result.reason and result.reason.startswith("blocked_by_pattern")
     assert "危险操作已拦截" in result.stderr
     assert called["ensure"] is False
+
+
+def test_test_connection_batch_collects_results_in_input_order(monkeypatch):
+    SessionManager._sessions = {}
+    SessionManager._cleanup_thread = None
+
+    def fake_test_connection(host_name, timeout=15):
+        if host_name == "bad":
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        "linux_remote_tool.session_manager.SessionManager.test_connection",
+        fake_test_connection,
+    )
+
+    result = SessionManager.test_connection_batch(["good", "bad", "good"], max_workers=8)
+
+    assert result.total == 2
+    assert result.success_count == 1
+    assert result.failure_count == 1
+    assert [item.host_name for item in result.items] == ["good", "bad"]
+    assert result.items[0].message == "good 连接成功"
+    assert result.items[1].message == "bad 连接异常: boom"
 
 
 def test_run_command_batch_collects_results_in_input_order(monkeypatch):
