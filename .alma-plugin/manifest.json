@@ -1,7 +1,7 @@
 {
   "id": "lr",
   "name": "lr",
-  "version": "0.6.0",
+  "version": "1.0.0",
   "description": "给 AI Agent 用的持久会话 Linux SSH 操作插件",
   "author": {
     "name": "adfoke",
