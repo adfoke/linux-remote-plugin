@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 from linux_remote_tool.models import (
-    BatchCommandResult,
     BatchConnectionItem,
     BatchConnectionResult,
     BatchTransferItem,
