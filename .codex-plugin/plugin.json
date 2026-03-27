@@ -1,0 +1,38 @@
+{
+  "name": "lr",
+  "version": "0.6.0",
+  "description": "Linux SSH remote ops for Codex with persistent sessions and audit logs.",
+  "author": {
+    "name": "adfoke",
+    "email": "trawow@gmail.com",
+    "url": "https://github.com/adfoke"
+  },
+  "homepage": "https://github.com/adfoke/linux-remote-plugin",
+  "repository": "https://github.com/adfoke/linux-remote-plugin",
+  "license": "MIT",
+  "keywords": [
+    "ssh",
+    "linux",
+    "remote",
+    "codex",
+    "audit"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "lr",
+    "shortDescription": "Run SSH commands and file transfers on configured Linux hosts.",
+    "longDescription": "Use configured SSH hosts from Codex for connection tests, command execution, file transfer, and audit log queries with persistent sessions.",
+    "developerName": "adfoke",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/adfoke/linux-remote-plugin",
+    "defaultPrompt": [
+      "Use lr to test a host, run a command, upload or download files, or inspect audit logs."
+    ],
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}

@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "linux-remote-plugin"
+name = "lr"
 version = "0.6.0"
 source = { editable = "." }
 dependencies = [

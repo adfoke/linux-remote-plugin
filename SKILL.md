@@ -1,5 +1,5 @@
 ---
-name: linux-remote-plugin
+name: lr
 description: SSH/SFTP remote ops for Alma agents with persistent sessions, command blocking, and SQLite audit logs.
 allowed-tools:
   - Bash
@@ -7,7 +7,7 @@ allowed-tools:
   - Write
 ---
 
-# Linux Remote Plugin Skill
+# lr Skill
 
 ## 作用
 
@@ -65,9 +65,9 @@ allowed-tools:
 查日志走 CLI：
 
 ```bash
-linux-remote audit-logs
-linux-remote audit-logs --host-name prod-web-1
-linux-remote audit-logs --operation-type run_command
+lr audit-logs
+lr audit-logs --host-name prod-web-1
+lr audit-logs --operation-type run_command
 ```
 
 支持过滤：

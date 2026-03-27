@@ -1,5 +1,5 @@
 [project]
-name = "linux-remote-plugin"
+name = "lr"
 version = "0.6.0"
 description = "Linux remote plugin with persistent SSH sessions for AI agents"
 readme = "README.md"
@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-linux-remote = "linux_remote_plugin.cli:main"
-linux-remote-plugin = "linux_remote_plugin.cli:main"
+lr = "linux_remote_plugin.cli:main"
+lr-codex = "linux_remote_plugin.codex_bridge:main"
 
 [project.optional-dependencies]
 dev = [
