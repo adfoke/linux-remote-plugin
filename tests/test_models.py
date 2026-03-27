@@ -1,9 +1,9 @@
-from linux_remote_plugin.models import (
+from linux_remote_tool.models import (
     AuditConfig,
     CommandResult,
     HostAuth,
     HostConfig,
-    PluginConfig,
+    RuntimeConfig,
     SessionConfig,
 )
 
@@ -37,7 +37,7 @@ def test_command_result():
     assert result.model_dump()["success"] is True
 
 
-def test_plugin_config_defaults():
-    cfg = PluginConfig()
+def test_runtime_config_defaults():
+    cfg = RuntimeConfig()
     assert isinstance(cfg.session, SessionConfig)
     assert isinstance(cfg.audit, AuditConfig)

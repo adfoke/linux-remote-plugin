@@ -1,7 +1,7 @@
 {
-  "name": "lr-pi-package",
+  "name": "linux-remote-tool-pi-package",
   "version": "1.0.1",
-  "description": "Pi skill package for lr Linux remote operations",
+  "description": "Pi skill package for the lr Linux remote runtime",
   "keywords": [
     "pi-package",
     "pi",

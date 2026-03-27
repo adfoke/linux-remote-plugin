@@ -1,7 +1,7 @@
 [project]
-name = "lr"
+name = "linux-remote-tool"
 version = "1.0.1"
-description = "Linux remote plugin with persistent SSH sessions for AI agents"
+description = "Linux remote runtime and bridge for AI agent skills"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-lr = "linux_remote_plugin.cli:main"
-lr-codex = "linux_remote_plugin.codex_bridge:main"
+lr = "linux_remote_tool.cli:main"
+lr-codex = "linux_remote_tool.codex_bridge:main"
 
 [project.optional-dependencies]
 dev = [
@@ -39,6 +39,6 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/linux_remote_plugin --cov-report=term-missing"
+addopts = "--cov=src/linux_remote_tool --cov-report=term-missing"
 python_files = "test_*.py"
 testpaths = ["tests"]

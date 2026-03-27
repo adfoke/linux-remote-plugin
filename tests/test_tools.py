@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock
 
-from linux_remote_plugin.models import (
+from linux_remote_tool.models import (
     BatchCommandItem,
     BatchCommandResult,
     BatchTransferItem,
     BatchTransferResult,
 )
-from linux_remote_plugin.tools import (
+from linux_remote_tool.tools import (
     download_file,
     download_file_batch,
     list_hosts,
@@ -24,7 +24,7 @@ def test_test_connection_success(monkeypatch):
     mock_result = MagicMock()
     mock_result.success = True
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.run_command",
+        "linux_remote_tool.tools.SessionManager.run_command",
         lambda *args, **kwargs: mock_result,
     )
 
@@ -36,7 +36,7 @@ def test_test_connection_failure(monkeypatch):
     mock_result = MagicMock()
     mock_result.success = False
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.run_command",
+        "linux_remote_tool.tools.SessionManager.run_command",
         lambda *args, **kwargs: mock_result,
     )
 
@@ -48,14 +48,14 @@ def test_test_connection_exception(monkeypatch):
     def raise_exc(*args, **kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("linux_remote_plugin.tools.SessionManager.run_command", raise_exc)
+    monkeypatch.setattr("linux_remote_tool.tools.SessionManager.run_command", raise_exc)
     result = tool_test_connection("test-server")
     assert "连接异常" in result
 
 
 def test_test_connection_batch(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.run_command_batch",
+        "linux_remote_tool.tools.SessionManager.run_command_batch",
         lambda *args, **kwargs: BatchCommandResult(
             total=3,
             success_count=1,
@@ -102,7 +102,7 @@ def test_test_connection_batch(monkeypatch):
 def test_run_command(monkeypatch):
     mock_result = MagicMock()
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.run_command",
+        "linux_remote_tool.tools.SessionManager.run_command",
         lambda *args, **kwargs: mock_result,
     )
 
@@ -113,7 +113,7 @@ def test_run_command(monkeypatch):
 def test_run_command_batch(monkeypatch):
     mock_result = MagicMock()
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.run_command_batch",
+        "linux_remote_tool.tools.SessionManager.run_command_batch",
         lambda *args, **kwargs: mock_result,
     )
 
@@ -124,7 +124,7 @@ def test_run_command_batch(monkeypatch):
 
 def test_upload_file(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.upload_file",
+        "linux_remote_tool.tools.SessionManager.upload_file",
         lambda *args, **kwargs: "上传成功 local.sh → /tmp/remote.sh",
     )
 
@@ -134,7 +134,7 @@ def test_upload_file(monkeypatch):
 
 def test_upload_file_batch(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.upload_file_batch",
+        "linux_remote_tool.tools.SessionManager.upload_file_batch",
         lambda *args, **kwargs: BatchTransferResult(
             total=2,
             success_count=2,
@@ -165,7 +165,7 @@ def test_upload_file_batch(monkeypatch):
 
 def test_download_file(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.download_file",
+        "linux_remote_tool.tools.SessionManager.download_file",
         lambda *args, **kwargs: "下载成功 /remote.sh → local.sh",
     )
 
@@ -175,7 +175,7 @@ def test_download_file(monkeypatch):
 
 def test_download_file_batch(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.SessionManager.download_file_batch",
+        "linux_remote_tool.tools.SessionManager.download_file_batch",
         lambda *args, **kwargs: BatchTransferResult(
             total=2,
             success_count=1,
@@ -207,7 +207,7 @@ def test_download_file_batch(monkeypatch):
 
 def test_list_hosts(monkeypatch):
     monkeypatch.setattr(
-        "linux_remote_plugin.tools.load_hosts",
+        "linux_remote_tool.tools.load_hosts",
         lambda: {"test-server": object()},
     )
     assert list_hosts() == ["test-server"]
@@ -222,7 +222,7 @@ def test_query_audit_logs(monkeypatch):
         "total_pages": 1,
         "items": [{"id": 1}],
     }
-    monkeypatch.setattr("linux_remote_plugin.tools.AuditLogger", lambda: logger)
+    monkeypatch.setattr("linux_remote_tool.tools.AuditLogger", lambda: logger)
 
     result = query_audit_logs(page=1, page_size=50, host_name="test-server")
 
@@ -247,7 +247,7 @@ def test_query_audit_logs_with_limit(monkeypatch):
         "total_pages": 3,
         "items": [{"id": 5}, {"id": 4}],
     }
-    monkeypatch.setattr("linux_remote_plugin.tools.AuditLogger", lambda: logger)
+    monkeypatch.setattr("linux_remote_tool.tools.AuditLogger", lambda: logger)
 
     result = query_audit_logs(limit=2)
 

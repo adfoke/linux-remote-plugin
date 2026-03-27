@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from linux_remote_plugin.models import HostAuth, HostConfig
-from linux_remote_plugin.session_manager import SessionManager
+from linux_remote_tool.models import HostAuth, HostConfig
+from linux_remote_tool.session_manager import SessionManager
 
 
 def test_run_command_uses_cached_session(monkeypatch):
@@ -15,7 +15,7 @@ def test_run_command_uses_cached_session(monkeypatch):
         username="u",
         auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
     )
-    monkeypatch.setattr("linux_remote_plugin.session_manager.load_hosts", lambda: {"h": host_cfg})
+    monkeypatch.setattr("linux_remote_tool.session_manager.load_hosts", lambda: {"h": host_cfg})
 
     client = MagicMock()
     transport = MagicMock()
@@ -33,7 +33,7 @@ def test_run_command_uses_cached_session(monkeypatch):
     client.exec_command.return_value = (None, stdout, stderr)
 
     monkeypatch.setattr("paramiko.SSHClient", lambda: client)
-    monkeypatch.setattr("linux_remote_plugin.session_manager.SSHManager._connect", lambda *args, **kwargs: None)
+    monkeypatch.setattr("linux_remote_tool.session_manager.SSHManager._connect", lambda *args, **kwargs: None)
 
     r1 = SessionManager.run_command("h", "echo ok")
     r2 = SessionManager.run_command("h", "echo ok")
@@ -52,9 +52,9 @@ def test_ensure_session_closes_stale_session_before_reconnect(monkeypatch):
         username="u",
         auth=HostAuth(method="key", key_path="~/.ssh/id_ed25519"),
     )
-    monkeypatch.setattr("linux_remote_plugin.session_manager.load_hosts", lambda: {"h": host_cfg})
+    monkeypatch.setattr("linux_remote_tool.session_manager.load_hosts", lambda: {"h": host_cfg})
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SSHManager._connect",
+        "linux_remote_tool.session_manager.SSHManager._connect",
         lambda *args, **kwargs: None,
     )
 
@@ -99,7 +99,7 @@ def test_upload_download(monkeypatch):
     session["lock"].__exit__ = lambda *args: None
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager._ensure_session",
+        "linux_remote_tool.session_manager.SessionManager._ensure_session",
         lambda host_name: session,
     )
 
@@ -119,7 +119,7 @@ def test_run_command_block_dangerous(monkeypatch):
         return {}
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager._ensure_session",
+        "linux_remote_tool.session_manager.SessionManager._ensure_session",
         fake_ensure,
     )
 
@@ -150,7 +150,7 @@ def test_run_command_batch_collects_results_in_input_order(monkeypatch):
         return mock_result
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager.run_command",
+        "linux_remote_tool.session_manager.SessionManager.run_command",
         fake_run_command,
     )
 
@@ -184,7 +184,7 @@ def test_run_command_batch_captures_exception_per_host(monkeypatch):
         return mock_result
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager.run_command",
+        "linux_remote_tool.session_manager.SessionManager.run_command",
         fake_run_command,
     )
 
@@ -218,7 +218,7 @@ def test_run_command_batch_preserves_blocked_result(monkeypatch):
         return mock_result
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager.run_command",
+        "linux_remote_tool.session_manager.SessionManager.run_command",
         fake_run_command,
     )
 
@@ -240,7 +240,7 @@ def test_upload_file_batch_collects_results_in_input_order(monkeypatch):
     SessionManager._cleanup_thread = None
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager.upload_file",
+        "linux_remote_tool.session_manager.SessionManager.upload_file",
         lambda host_name, local_path, remote_path: f"上传成功 {local_path} → {remote_path} ({host_name})",
     )
 
@@ -263,7 +263,7 @@ def test_upload_file_batch_captures_exception_per_host(monkeypatch):
         return f"上传成功 {local_path} → {remote_path}"
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager.upload_file",
+        "linux_remote_tool.session_manager.SessionManager.upload_file",
         fake_upload_file,
     )
 
@@ -281,7 +281,7 @@ def test_download_file_batch_uses_template_and_preserves_order(monkeypatch):
     SessionManager._cleanup_thread = None
 
     monkeypatch.setattr(
-        "linux_remote_plugin.session_manager.SessionManager.download_file",
+        "linux_remote_tool.session_manager.SessionManager.download_file",
         lambda host_name, remote_path, local_path: f"下载成功 {remote_path} → {local_path}",
     )
 

@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 import paramiko
 import pytest
 
-from linux_remote_plugin.models import HostAuth, HostConfig
-from linux_remote_plugin.ssh import SSHManager
+from linux_remote_tool.models import HostAuth, HostConfig
+from linux_remote_tool.ssh import SSHManager
 
 
-@patch("linux_remote_plugin.ssh.load_hosts")
+@patch("linux_remote_tool.ssh.load_hosts")
 @patch("paramiko.SSHClient")
 def test_run_command_success(mock_ssh_client, mock_load_hosts, monkeypatch):
     monkeypatch.setenv("MY_SERVER_KEY_PASS", "key_pass")
@@ -35,7 +35,7 @@ def test_run_command_success(mock_ssh_client, mock_load_hosts, monkeypatch):
     mock_client.close.assert_called_once()
 
 
-@patch("linux_remote_plugin.ssh.load_hosts")
+@patch("linux_remote_tool.ssh.load_hosts")
 @patch("paramiko.SSHClient")
 def test_upload_file(mock_ssh_client, mock_load_hosts):
     host_config = HostConfig(
@@ -56,7 +56,7 @@ def test_upload_file(mock_ssh_client, mock_load_hosts):
     mock_client.close.assert_called_once()
 
 
-@patch("linux_remote_plugin.ssh.load_hosts")
+@patch("linux_remote_tool.ssh.load_hosts")
 def test_run_command_host_not_found(mock_load_hosts):
     mock_load_hosts.return_value = {}
     with pytest.raises(ValueError, match="未配置"):

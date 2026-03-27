@@ -6,7 +6,7 @@ from typing import Any, Dict
 import yaml
 from dotenv import load_dotenv
 
-from .models import AuditConfig, HostAuth, HostConfig, PluginConfig
+from .models import AuditConfig, HostAuth, HostConfig, RuntimeConfig
 
 load_dotenv()
 
@@ -34,14 +34,14 @@ def load_hosts(config_path: str = "hosts.yaml") -> Dict[str, HostConfig]:
     return hosts
 
 
-def load_config(config_path: str = "hosts.yaml") -> PluginConfig:
-    """Load optional plugin settings (session/audit). Missing file falls back to defaults."""
+def load_config(config_path: str = "hosts.yaml") -> RuntimeConfig:
+    """Load optional runtime settings. Missing file falls back to defaults."""
     try:
         data = _read_yaml(config_path)
     except FileNotFoundError:
-        return PluginConfig()
+        return RuntimeConfig()
 
-    return PluginConfig(
+    return RuntimeConfig(
         session=data.get("session", {}),
         audit=data.get("audit", {}),
         policy=data.get("policy", {}),

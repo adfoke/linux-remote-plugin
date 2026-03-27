@@ -2,7 +2,7 @@
   "id": "lr",
   "name": "lr",
   "version": "1.0.1",
-  "description": "给 AI Agent 用的持久会话 Linux SSH 操作插件",
+  "description": "给 AI Agent 用的 Linux 远程运行时薄插件壳",
   "author": {
     "name": "adfoke",
     "email": "trawow@gmail.com"

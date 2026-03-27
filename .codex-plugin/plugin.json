@@ -1,14 +1,14 @@
 {
   "name": "lr",
   "version": "1.0.1",
-  "description": "Linux SSH remote ops for Codex with persistent sessions and audit logs.",
+  "description": "Thin Codex plugin shell that exposes lr skills for Linux remote ops.",
   "author": {
     "name": "adfoke",
     "email": "trawow@gmail.com",
     "url": "https://github.com/adfoke"
   },
-  "homepage": "https://github.com/adfoke/linux-remote-plugin",
-  "repository": "https://github.com/adfoke/linux-remote-plugin",
+  "homepage": "https://github.com/adfoke/linux-remote-tool",
+  "repository": "https://github.com/adfoke/linux-remote-tool",
   "license": "MIT",
   "keywords": [
     "ssh",
@@ -20,17 +20,17 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "lr",
-    "shortDescription": "Run SSH commands and file transfers on configured Linux hosts.",
-    "longDescription": "Use configured SSH hosts from Codex for connection tests, command execution, file transfer, and audit log queries with persistent sessions.",
+    "shortDescription": "Expose the lr skill for SSH commands and file transfers.",
+    "longDescription": "Thin Codex plugin shell for the lr skill. The shared runtime stays in Python, and the skill handles single-agent or multi-agent usage.",
     "developerName": "adfoke",
     "category": "Coding",
     "capabilities": [
       "Interactive",
       "Write"
     ],
-    "websiteURL": "https://github.com/adfoke/linux-remote-plugin",
+    "websiteURL": "https://github.com/adfoke/linux-remote-tool",
     "defaultPrompt": [
-      "Use lr to test a host, run a command, upload or download files, or inspect audit logs."
+      "Use the lr skill to test a host, run a command, upload or download files, or inspect audit logs."
     ],
     "brandColor": "#2563EB",
     "screenshots": []

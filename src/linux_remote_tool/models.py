@@ -97,7 +97,10 @@ class PolicyConfig(BaseModel):
     host_overrides: dict[str, PolicyHostOverride] = Field(default_factory=dict)
 
 
-class PluginConfig(BaseModel):
+class RuntimeConfig(BaseModel):
     session: SessionConfig = Field(default_factory=SessionConfig)
     audit: AuditConfig = Field(default_factory=AuditConfig)
     policy: PolicyConfig = Field(default_factory=PolicyConfig)
+
+
+PluginConfig = RuntimeConfig

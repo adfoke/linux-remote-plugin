@@ -1,7 +1,7 @@
 import json
 
-from linux_remote_plugin.cli import main
-from linux_remote_plugin.models import BatchCommandItem, BatchCommandResult, CommandResult
+from linux_remote_tool.cli import main
+from linux_remote_tool.models import BatchCommandItem, BatchCommandResult, CommandResult
 
 
 def test_cli_root_help_supports_long_and_short_aliases(capsys):
@@ -32,7 +32,7 @@ def test_cli_audit_logs_help(capsys):
 
 
 def test_cli_accepts_underscore_command_alias(monkeypatch, capsys):
-    monkeypatch.setattr("linux_remote_plugin.cli.list_hosts", lambda: ["web-1"])
+    monkeypatch.setattr("linux_remote_tool.cli.list_hosts", lambda: ["web-1"])
 
     exit_code = main(["list_hosts"])
 
@@ -43,7 +43,7 @@ def test_cli_accepts_underscore_command_alias(monkeypatch, capsys):
 
 
 def test_cli_list_hosts_outputs_json(monkeypatch, capsys):
-    monkeypatch.setattr("linux_remote_plugin.cli.list_hosts", lambda: ["web-1", "web-2"])
+    monkeypatch.setattr("linux_remote_tool.cli.list_hosts", lambda: ["web-1", "web-2"])
 
     exit_code = main(["list-hosts"])
 
@@ -56,7 +56,7 @@ def test_cli_list_hosts_outputs_json(monkeypatch, capsys):
 
 def test_cli_audit_logs_outputs_json(monkeypatch, capsys):
     monkeypatch.setattr(
-        "linux_remote_plugin.cli.query_audit_logs",
+        "linux_remote_tool.cli.query_audit_logs",
         lambda **kwargs: {"page": 1, "page_size": 50, "total": 1, "total_pages": 1, "items": []},
     )
 
@@ -84,7 +84,7 @@ def test_cli_audit_logs_passes_limit(monkeypatch, capsys):
         called["limit"] = kwargs.get("limit")
         return {"page": 1, "page_size": 2, "total": 3, "total_pages": 2, "items": []}
 
-    monkeypatch.setattr("linux_remote_plugin.cli.query_audit_logs", fake_query_audit_logs)
+    monkeypatch.setattr("linux_remote_tool.cli.query_audit_logs", fake_query_audit_logs)
 
     exit_code = main(["audit-logs", "--limit", "2"])
 
@@ -105,7 +105,7 @@ def test_cli_audit_logs_rejects_latest_option(capsys):
 
 def test_cli_run_command_returns_remote_exit_code(monkeypatch, capsys):
     monkeypatch.setattr(
-        "linux_remote_plugin.cli.run_command",
+        "linux_remote_tool.cli.run_command",
         lambda host_name, command_text, timeout: CommandResult(
             command=command_text,
             exit_code=7,
@@ -125,7 +125,7 @@ def test_cli_run_command_returns_remote_exit_code(monkeypatch, capsys):
 
 def test_cli_run_command_batch_uses_failure_exit_code(monkeypatch, capsys):
     monkeypatch.setattr(
-        "linux_remote_plugin.cli.run_command_batch",
+        "linux_remote_tool.cli.run_command_batch",
         lambda host_names, command_text, timeout, max_workers: BatchCommandResult(
             total=2,
             success_count=1,
@@ -161,7 +161,7 @@ def test_cli_run_command_batch_uses_failure_exit_code(monkeypatch, capsys):
 
 def test_cli_reports_errors_to_stderr(monkeypatch, capsys):
     monkeypatch.setattr(
-        "linux_remote_plugin.cli.list_hosts",
+        "linux_remote_tool.cli.list_hosts",
         lambda: (_ for _ in ()).throw(ValueError("boom")),
     )
 

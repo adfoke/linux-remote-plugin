@@ -1,27 +1,25 @@
-from .runtime_adapter import LinuxRemoteRuntimeAdapter
-from .tools import (
-    download_file,
-    download_file_batch,
-    list_hosts,
-    query_audit_logs,
-    run_command,
-    run_command_batch,
-    test_connection,
-    test_connection_batch,
-    upload_file_batch,
-    upload_file,
+from __future__ import annotations
+
+import sys
+from importlib import import_module
+
+
+_NEW_PACKAGE = "linux_remote_tool"
+_SUBMODULES = (
+    "audit",
+    "cli",
+    "codex_bridge",
+    "config",
+    "models",
+    "runtime_adapter",
+    "safety",
+    "session_manager",
+    "ssh",
+    "tools",
 )
 
-__all__ = [
-    "LinuxRemoteRuntimeAdapter",
-    "list_hosts",
-    "test_connection",
-    "test_connection_batch",
-    "run_command",
-    "run_command_batch",
-    "upload_file",
-    "upload_file_batch",
-    "download_file",
-    "download_file_batch",
-    "query_audit_logs",
-]
+_pkg = import_module(_NEW_PACKAGE)
+sys.modules[__name__] = _pkg
+
+for _submodule in _SUBMODULES:
+    sys.modules[f"{__name__}.{_submodule}"] = import_module(f"{_NEW_PACKAGE}.{_submodule}")

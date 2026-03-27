@@ -1,6 +1,6 @@
 import pytest
 
-from linux_remote_plugin.config import load_config, load_hosts
+from linux_remote_tool.config import load_config, load_hosts
 
 
 def test_load_hosts_success():
