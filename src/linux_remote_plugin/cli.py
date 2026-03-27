@@ -74,7 +74,7 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     _add_help_flag(parser)
-    parser.add_argument("--version", action="version", version="lr 1.0.0")
+    parser.add_argument("--version", action="version", version="lr 1.0.1")
 
     common_parent = _common_parent()
     subparsers = parser.add_subparsers(dest="command")

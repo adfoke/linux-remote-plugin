@@ -1,6 +1,6 @@
 [project]
 name = "lr"
-version = "1.0.0"
+version = "1.0.1"
 description = "Linux remote plugin with persistent SSH sessions for AI agents"
 readme = "README.md"
 requires-python = ">=3.11"

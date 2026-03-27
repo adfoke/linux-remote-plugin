@@ -1,6 +1,6 @@
 {
   "name": "lr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Linux SSH remote ops for Codex with persistent sessions and audit logs.",
   "author": {
     "name": "adfoke",
