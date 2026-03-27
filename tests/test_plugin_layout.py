@@ -27,3 +27,11 @@ def test_codex_manifest_exposes_skills():
 
 def test_codex_skill_entry_exists():
     assert (REPO_ROOT / "skills" / "lr" / "SKILL.md").exists()
+
+
+def test_pi_package_exposes_skills_only():
+    manifest = json.loads((REPO_ROOT / "package.json").read_text())
+
+    assert "pi-package" in manifest["keywords"]
+    assert manifest["pi"]["skills"] == ["./skills"]
+    assert "extensions" not in manifest["pi"]

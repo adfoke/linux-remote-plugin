@@ -11,6 +11,7 @@
 - CLI 查询审计日志
 - Codex 插件适配
 - Alma 插件适配
+- Pi skill 适配
 
 ## 安装
 
@@ -118,6 +119,22 @@ uv run lr-codex invoke run_command --args '{"host_name":"my-server","command":"u
 
 Codex 侧目前通过插件 skill 暴露 `lr-codex` 的使用方式。这里先走本地桥接，不硬写 `.app.json` / `.mcp.json` 协议壳，避免伪适配。当前仓库已经具备被 Codex 侧继续接入的稳定入口。
 
+## Pi
+
+仓库现在支持 Pi 的 skill 模式：
+
+- `package.json`
+- `skills/lr/SKILL.md`
+
+说明：
+
+- 不做 Pi extension
+- 不重复包装一层 TypeScript 工具注册
+- Pi 侧直接通过 skill 指导模型调用本地 `lr-codex`
+- 远程执行、文件传输、审计逻辑仍然只在 Python 核心里维护
+
+如果要在 Pi 里接这个仓库，推荐用 package/skills 方式安装或加载这个 skill。
+
 ## 多平台插件适配
 
 这个仓库现在把“核心能力”和“平台适配层”拆开了。
@@ -161,12 +178,26 @@ Codex 相关文件放在：
 - `lr-codex tools` 输出工具定义
 - `lr-codex invoke` 调用单个工具
 
+### Pi
+
+Pi 相关文件放在：
+
+- `package.json`
+- `skills/lr/SKILL.md`
+
+说明：
+
+- `package.json` 只暴露 `pi.skills`
+- Pi 通过 `skills/lr/SKILL.md` 使用本地桥接
+- 执行时不直接重写 SSH 逻辑，统一转发到 `lr-codex`
+
 ### 目录约定
 
 建议后续都按这个规则继续扩展：
 
 - 平台专属清单放到 `.<platform>-plugin/`
 - 平台专属薄包装放到该目录，或放到 `src/linux_remote_plugin/` 下单独命名
+- Pi 这类 package 型宿主，优先放 `skills/` 和 `package.json`
 - 共享工具定义和调用逻辑继续收敛在 `src/linux_remote_plugin/runtime_adapter.py`
 - 不要在不同平台重复实现同一套工具
 
@@ -177,7 +208,8 @@ Codex 相关文件放在：
 1. 新建平台清单目录，比如 `.<platform>-plugin/`
 2. 让平台入口转发到 `src/linux_remote_plugin/runtime_adapter.py`
 3. 如果平台需要命令行桥接，再单独加一个像 `lr-codex` 这样的入口
-4. 不改现有 SSH、文件传输、审计逻辑
+4. 对 Pi 这类 package 宿主，优先用 skill 复用现有 CLI / bridge
+5. 不改现有 SSH、文件传输、审计逻辑
 
 这样改动最小，也最不容易把不同平台适配搞散。
 
