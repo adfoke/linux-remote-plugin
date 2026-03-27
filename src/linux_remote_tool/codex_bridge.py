@@ -31,7 +31,7 @@ def _load_invoke_args(raw_args: str | None) -> dict[str, Any]:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="lr-codex",
+        prog="lrt-codex",
         description="Codex bridge for lr.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

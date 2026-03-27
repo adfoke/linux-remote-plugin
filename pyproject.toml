@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-lr = "linux_remote_tool.cli:main"
-lr-codex = "linux_remote_tool.codex_bridge:main"
+lrt = "linux_remote_tool.cli:main"
+lrt-codex = "linux_remote_tool.codex_bridge:main"
 
 [project.optional-dependencies]
 dev = [

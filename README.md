@@ -1,6 +1,6 @@
 # linux-remote-tool
 
-CLI 名称仍然是 `lr`。
+CLI 名称是 `lrt`。
 
 给 AI Agent 用的 Linux 远程操作运行时。
 
@@ -81,28 +81,28 @@ policy:
 看帮助：
 
 ```bash
-uv run lr --help
-uv run lr --h
+uv run lrt --help
+uv run lrt --h
 ```
 
 常用命令：
 
 ```bash
-uv run lr list-hosts
-uv run lr test-connection my-server
-uv run lr run-command my-server "uname -a"
-uv run lr upload-file my-server ./a.txt /tmp/a.txt
-uv run lr download-file my-server /tmp/a.txt ./a.txt
-uv run lr audit-logs
+uv run lrt list-hosts
+uv run lrt test-connection my-server
+uv run lrt run-command my-server "uname -a"
+uv run lrt upload-file my-server ./a.txt /tmp/a.txt
+uv run lrt download-file my-server /tmp/a.txt ./a.txt
+uv run lrt audit-logs
 ```
 
 审计日志过滤：
 
 ```bash
-uv run lr audit-logs --limit 10
-uv run lr audit-logs --host-name my-server
-uv run lr audit-logs --operation-type run_command
-uv run lr audit-logs --start-time 2026-03-03T00:00:00Z --end-time 2026-03-03T23:59:59Z
+uv run lrt audit-logs --limit 10
+uv run lrt audit-logs --host-name my-server
+uv run lrt audit-logs --operation-type run_command
+uv run lrt audit-logs --start-time 2026-03-03T00:00:00Z --end-time 2026-03-03T23:59:59Z
 ```
 
 默认输出 JSON。
@@ -133,9 +133,9 @@ Codex 侧保留一个很薄的接入壳：
 另外补了一个本地桥接入口，方便 Codex 或别的宿主进程直接调用现有运行时：
 
 ```bash
-uv run lr-codex tools
-uv run lr-codex invoke list_hosts
-uv run lr-codex invoke run_command --args '{"host_name":"my-server","command":"uname -a"}'
+uv run lrt-codex tools
+uv run lrt-codex invoke list_hosts
+uv run lrt-codex invoke run_command --args '{"host_name":"my-server","command":"uname -a"}'
 ```
 
 `tools` 返回工具定义 JSON，`invoke` 返回调用结果 JSON。
@@ -153,7 +153,7 @@ Codex 侧通过接入壳暴露 skill，真正的调用流程放在 `skills/lr/SK
 
 - 不做 Pi extension
 - 不重复包装一层 TypeScript 工具注册
-- Pi 侧直接通过 skill 调用本地 `lr-codex`
+- Pi 侧直接通过 skill 调用本地 `lrt-codex`
 - 多 agent 规则也统一放在 skill
 - 远程执行、文件传输、审计逻辑仍然只在 Python 核心里维护
 
@@ -165,7 +165,7 @@ Codex 侧通过接入壳暴露 skill，真正的调用流程放在 `skills/lr/SK
 
 - 先复用 batch tool，不要一上来拆多个 agent
 - 真要拆 agent，就按 host 集合或任务类型切开
-- 每个 agent 都走同一个 `lr-codex` bridge
+- 每个 agent 都走同一个 `lrt-codex` bridge
 - skill 负责约束和汇总
 - 接入壳不保存多 agent 状态，不承载编排逻辑
 
@@ -207,9 +207,9 @@ Codex 相关文件放在：
 说明：
 
 - `.codex-plugin/plugin.json` 是 Codex 的薄接入壳
-- `codex_bridge.py` 提供本地桥接命令 `lr-codex`
-- `lr-codex tools` 输出工具定义
-- `lr-codex invoke` 调用单个工具
+- `codex_bridge.py` 提供本地桥接命令 `lrt-codex`
+- `lrt-codex tools` 输出工具定义
+- `lrt-codex invoke` 调用单个工具
 - skill 负责单 agent / 多 agent 的使用方式
 
 ### Pi
@@ -223,7 +223,7 @@ Pi 相关文件放在：
 
 - `package.json` 只暴露 `pi.skills`
 - Pi 通过 `skills/lr/SKILL.md` 使用本地桥接
-- 执行时不直接重写 SSH 逻辑，统一转发到 `lr-codex`
+- 执行时不直接重写 SSH 逻辑，统一转发到 `lrt-codex`
 - 多 agent 也不单独做 extension，继续走 skill
 
 ### 目录约定
@@ -244,7 +244,7 @@ Pi 相关文件放在：
 
 1. 新建平台清单目录，比如 `.<platform>-plugin/`
 2. 让平台入口转发到 `src/linux_remote_tool/runtime_adapter.py`
-3. 如果平台需要命令行桥接，再单独加一个像 `lr-codex` 这样的入口
+3. 如果平台需要命令行桥接，再单独加一个像 `lrt-codex` 这样的入口
 4. 在 `skills/` 里写单 agent / 多 agent 的调用规则
 5. 对 Pi 这类 package 宿主，优先用 skill 复用现有 CLI / bridge
 6. 不改现有 SSH、文件传输、审计逻辑
