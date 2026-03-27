@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from alma_linux_remote_plugin.runtime_adapter import adapter
+from linux_remote_plugin.runtime_adapter import adapter
 
 
 def test_get_tools():
@@ -10,14 +10,14 @@ def test_get_tools():
     assert len(tools) == 10
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.list_hosts")
+@patch("linux_remote_plugin.runtime_adapter.list_hosts")
 def test_invoke_list_hosts(mock_list_hosts):
     mock_list_hosts.return_value = ["test-server"]
     result = adapter.invoke("list_hosts", {})
     assert result == ["test-server"]
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.run_command")
+@patch("linux_remote_plugin.runtime_adapter.run_command")
 def test_invoke_run_command(mock_run_command):
     mock_result = type("R", (), {"model_dump": lambda self: {"success": True}})()
     mock_run_command.return_value = mock_result
@@ -32,7 +32,7 @@ def test_invoke_run_command(mock_run_command):
     assert result["success"] is True
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.test_connection_batch")
+@patch("linux_remote_plugin.runtime_adapter.test_connection_batch")
 def test_invoke_test_connection_batch(mock_test_connection_batch):
     mock_result = type(
         "R",
@@ -61,7 +61,7 @@ def test_invoke_test_connection_batch(mock_test_connection_batch):
     assert result["failure_count"] == 1
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.run_command_batch")
+@patch("linux_remote_plugin.runtime_adapter.run_command_batch")
 def test_invoke_run_command_batch(mock_run_command_batch):
     mock_result = type(
         "R",
@@ -87,7 +87,7 @@ def test_invoke_run_command_batch(mock_run_command_batch):
     assert result["total"] == 2
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.upload_file")
+@patch("linux_remote_plugin.runtime_adapter.upload_file")
 def test_invoke_upload_file(mock_upload):
     mock_upload.return_value = "ok"
     result = adapter.invoke(
@@ -97,7 +97,7 @@ def test_invoke_upload_file(mock_upload):
     assert result == "ok"
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.upload_file_batch")
+@patch("linux_remote_plugin.runtime_adapter.upload_file_batch")
 def test_invoke_upload_file_batch(mock_upload_file_batch):
     mock_upload_file_batch.return_value = type(
         "R",
@@ -123,7 +123,7 @@ def test_invoke_upload_file_batch(mock_upload_file_batch):
     assert result["success_count"] == 2
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.download_file_batch")
+@patch("linux_remote_plugin.runtime_adapter.download_file_batch")
 def test_invoke_download_file_batch(mock_download_file_batch):
     mock_download_file_batch.return_value = type(
         "R",
@@ -149,7 +149,7 @@ def test_invoke_download_file_batch(mock_download_file_batch):
     assert result["failure_count"] == 1
 
 
-@patch("alma_linux_remote_plugin.runtime_adapter.query_audit_logs")
+@patch("linux_remote_plugin.runtime_adapter.query_audit_logs")
 def test_invoke_query_audit_logs(mock_query_audit_logs):
     mock_query_audit_logs.return_value = {
         "page": 1,

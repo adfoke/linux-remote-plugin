@@ -1,4 +1,4 @@
-from alma_linux_remote_plugin.models import (
+from linux_remote_plugin.models import (
     AuditConfig,
     CommandResult,
     HostAuth,

@@ -1,4 +1,4 @@
-from .runtime_adapter import AlmaRuntimeAdapter
+from .runtime_adapter import LinuxRemoteRuntimeAdapter
 from .tools import (
     download_file,
     download_file_batch,
@@ -13,7 +13,7 @@ from .tools import (
 )
 
 __all__ = [
-    "AlmaRuntimeAdapter",
+    "LinuxRemoteRuntimeAdapter",
     "list_hosts",
     "test_connection",
     "test_connection_batch",

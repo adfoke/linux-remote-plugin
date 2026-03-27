@@ -1,7 +1,7 @@
 [project]
-name = "alma-linux-remote-plugin"
+name = "linux-remote-plugin"
 version = "0.6.0"
-description = "Alma Skill - Stateful Linux remote with persistent SSH sessions for AI agents"
+description = "Linux remote plugin with persistent SSH sessions for AI agents"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-alma-linux-remote = "alma_linux_remote_plugin.cli:main"
-alma-linux-remote-plugin = "alma_linux_remote_plugin.cli:main"
+linux-remote = "linux_remote_plugin.cli:main"
+linux-remote-plugin = "linux_remote_plugin.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -39,6 +39,6 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/alma_linux_remote_plugin --cov-report=term-missing"
+addopts = "--cov=src/linux_remote_plugin --cov-report=term-missing"
 python_files = "test_*.py"
 testpaths = ["tests"]

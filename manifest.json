@@ -1,13 +1,13 @@
 {
-  "id": "alma-linux-remote-plugin",
-  "name": "Linux Remote (Persistent)",
+  "id": "linux-remote-plugin",
+  "name": "Linux Remote Plugin",
   "version": "0.6.0",
-  "description": "专为 Alma AI Agent 设计的持久会话 Linux SSH 操作插件",
+  "description": "给 AI Agent 用的持久会话 Linux SSH 操作插件",
   "author": {
     "name": "adfoke",
     "email": "trawow@gmail.com"
   },
-  "main": "src/alma_linux_remote_plugin/runtime_adapter.py",
+  "main": "src/linux_remote_plugin/runtime_adapter.py",
   "engines": {
     "alma": "^0.1.0"
   },

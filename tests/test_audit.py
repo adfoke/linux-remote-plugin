@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime, timedelta, timezone
 
-from alma_linux_remote_plugin.audit import AuditLogger
+from linux_remote_plugin.audit import AuditLogger
 
 
 def test_audit_logger_writes_sqlite(monkeypatch, tmp_path):

@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "alma-linux-remote-plugin"
+name = "linux-remote-plugin"
 version = "0.6.0"
 source = { editable = "." }
 dependencies = [

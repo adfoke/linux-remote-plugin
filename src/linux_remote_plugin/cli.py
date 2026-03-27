@@ -57,24 +57,24 @@ def _common_parent() -> argparse.ArgumentParser:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="alma-linux-remote",
+        prog="linux-remote",
         add_help=False,
         formatter_class=argparse.RawTextHelpFormatter,
         description=(
-            "AI-friendly CLI for alma-linux-remote-plugin.\n"
+            "AI-friendly CLI for linux-remote-plugin.\n"
             "Default output is structured JSON. Errors go to stderr with non-zero exit codes."
         ),
         epilog=(
             "Examples:\n"
-            "  alma-linux-remote list-hosts\n"
-            "  alma-linux-remote test-connection my-server\n"
-            "  alma-linux-remote run-command my-server 'uname -a'\n"
-            "  alma-linux-remote run-command-batch 'uptime' web-1 web-2\n"
-            "  alma-linux-remote audit-logs --limit 20\n"
+            "  linux-remote list-hosts\n"
+            "  linux-remote test-connection my-server\n"
+            "  linux-remote run-command my-server 'uname -a'\n"
+            "  linux-remote run-command-batch 'uptime' web-1 web-2\n"
+            "  linux-remote audit-logs --limit 20\n"
         ),
     )
     _add_help_flag(parser)
-    parser.add_argument("--version", action="version", version="alma-linux-remote 0.6.0")
+    parser.add_argument("--version", action="version", version="linux-remote 0.6.0")
 
     common_parent = _common_parent()
     subparsers = parser.add_subparsers(dest="command")

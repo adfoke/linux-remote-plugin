@@ -17,7 +17,7 @@ from .tools import (
 )
 
 
-class AlmaRuntimeAdapter:
+class LinuxRemoteRuntimeAdapter:
     def get_tools(self) -> List[Dict[str, Any]]:
         return [
             {
@@ -252,7 +252,7 @@ class AlmaRuntimeAdapter:
         raise ValueError(f"未知工具: {tool_name}")
 
 
-adapter = AlmaRuntimeAdapter()
+adapter = LinuxRemoteRuntimeAdapter()
 
 
 def get_tools():

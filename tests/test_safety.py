@@ -1,5 +1,5 @@
-from alma_linux_remote_plugin.models import PolicyConfig, PolicyHostOverride
-from alma_linux_remote_plugin.safety import evaluate_command_policy
+from linux_remote_plugin.models import PolicyConfig, PolicyHostOverride
+from linux_remote_plugin.safety import evaluate_command_policy
 
 
 def test_blocklist_mode_blocks_dangerous():
